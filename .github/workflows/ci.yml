@@ -28,6 +28,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Clear any cached npm tokens
+        run: |
+          npm config delete //registry.npmjs.org/:_authToken || true
+          rm -f ~/.npmrc || true
       
       - name: Verify repository structure
         run: |
