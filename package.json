@@ -19,10 +19,6 @@
     "amplify:generate": "amplify codegen"
   },
   "dependencies": {
-    "@aws-amplify/api-graphql": "^5.0.0",
-    "@aws-amplify/api-rest": "^5.0.0",
-    "@aws-amplify/auth": "^5.0.0",
-    "@aws-amplify/core": "^5.0.0",
     "@legendapp/state": "^2.0.0",
     "@legendapp/state-react": "^2.0.0",
     "@react-navigation/native": "^7.1.8",
