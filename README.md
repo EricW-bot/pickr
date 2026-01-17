@@ -12,15 +12,15 @@ The catch? The cards are powered by live data. An "Earthquake" card sits dormant
 * Reality Engine: An ingestion system powered by AWS Lambda that normalizes data from The Odds API, Polymarket, and NASA/USGS into game stats.
 * Dynamic "Living" Art: Cards are not static images. Using react-native-skia and expo-sensors, cards feature holographic shaders that react to device tilt and visual states that change based on live win probability.
 * The Widget: A Home Screen widget (iOS/Android) displaying a live "Tug of War" health bar between you and your rival, updating passively via background fetch.
-* 4 Unique Factions:
+* **4 Unique Factions:**
 
-🟢 The Arena (Sports): Reliable, high-volume stats.
+    * 🟢 The Arena (Sports): Reliable, high-volume stats.
 
-🔵 The Market (Finance): Volatile, high-risk assets.
+    * 🔵 The Market (Finance): Volatile, high-risk assets.
 
-🟣 The Feed (Culture): Viral moments and memes.
+    * 🟣 The Feed (Culture): Viral moments and memes.
 
-🔴 Entropy (Chaos): Rare, high-speed disaster events (Solar flares, Earthquakes).
+    * 🔴 Entropy (Chaos): Rare, high-speed disaster events (Solar flares, Earthquakes).
 
 ## 🛠 Tech Stack
 Mobile Client
