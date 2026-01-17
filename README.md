@@ -1,8 +1,8 @@
-# Prophecy 🔮
+# Pickr 🔮
 The Reality Trading Card Game. Clash Royale meets Prediction Markets.
 
 ## 📖 About The Project
-Prophecy is a mobile PvP strategy game where the cards in your deck are real-world events.
+Pickr is a mobile PvP strategy game where the cards in your deck are real-world events.
 
 Instead of fantasy creatures, players draft cards representing live outcomes—Sports wins, Stock rallies, Celebrity news, or Natural disasters. Players build a "Parlay Deck" and battle opponents in weekly cycles. If the events happen in real life, the cards activate and deal damage to the opponent.
 
