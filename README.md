@@ -59,8 +59,8 @@ npm install
 Start Supabase Locally (Requires Docker)
 ```bash
 npx supabase start
+# This spins up a local PostgreSQL database and Edge Runtime.
 ```
-This spins up a local PostgreSQL database and Edge Runtime.
 
 Generate Database Types
 ```bash
