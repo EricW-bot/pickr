@@ -1,0 +1,43 @@
+name: Pickr CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js (v20 is recommended for Expo 52+)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Install Dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Type Check (TypeScript)
+      # Uses the "tsc" script from your package.json
+      - name: Run TypeScript Check
+        run: npm run tsc
+
+      # 5. Linting
+      # Uses the "lint" script from your package.json
+      - name: Run ESLint
+        run: npm run lint
+
+      # 6. Unit Tests
+      # Uses the "test" script from your package.json
+      - name: Run Jest Tests
+        run: npm run test
