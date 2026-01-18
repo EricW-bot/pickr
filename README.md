@@ -1,5 +1,5 @@
 # Pickr 🎯
-Draft Reality. Battle Friends. The Reality Trading Card Game.
+*Draft Reality. Battle Friends. The Reality Trading Card Game.*
 
 ## 📖 About The Project
 Pickr is a competitive mobile game where your "Ammo" is real-world data.
@@ -179,4 +179,5 @@ Flow: App Logic -> Shared File System (JSON) -> Widget Timeline Provider.
 * Open a Pull Request
 
 ## 📄 License
+
 Distributed under the MIT License. See LICENSE for more information.
