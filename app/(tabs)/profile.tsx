@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function BattleScreen() {
+export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>Battle Arena</Text>
+      <Text style={styles.text}>User Profile</Text>
     </SafeAreaView>
   );
 }
