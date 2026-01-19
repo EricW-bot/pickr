@@ -1,26 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
 
 export default function ShopScreen() {
-  const [loaded] = useFonts({
-    HelveticaRegular: require('../../assets/fonts/HelveticaNeue-Regular.otf'),
-    HelveticaBold: require('../../assets/fonts/HelveticaNeue-Bold.otf'),
-    HelveticaMedium: require('../../assets/fonts/HelveticaNeue-Medium.otf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -28,7 +9,7 @@ export default function ShopScreen() {
       </View>
       
       <View style={styles.content}>
-        <Text>Coming Soon!</Text>
+        <Text style={{ fontFamily: 'HelveticaMedium' }}>Coming Soon!</Text>
       </View>
     </SafeAreaView>
   );
@@ -44,7 +25,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
     color: '#fff',
     fontFamily: 'HelveticaBold',
   },
@@ -57,7 +37,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'HelveticaRegular',
+    backgroundColor: 'grey',
+    borderRadius: 20,
+    padding: 20,
+    margin: 25,
+    fontFamily: 'HelveticaMedium',
+    fontSize: 50,
   },
   placeholder: {
     color: '#333',

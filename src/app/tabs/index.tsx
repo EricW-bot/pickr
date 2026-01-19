@@ -1,27 +1,8 @@
 import HoloCard from '@/src/components/HoloCard';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
-import { useEffect } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
 
 export default function DeckScreen() {
-  const [loaded] = useFonts({
-    HelveticaRegular: require('../../assets/fonts/HelveticaNeue-Regular.otf'),
-    HelveticaBold: require('../../assets/fonts/HelveticaNeue-Bold.otf'),
-    HelveticaMedium: require('../../assets/fonts/HelveticaNeue-Medium.otf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -49,7 +30,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
     color: '#fff',
     fontFamily: 'HelveticaBold',
   },

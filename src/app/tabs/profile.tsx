@@ -1,26 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
-import { useEffect } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
 
 export default function ProfileScreen() {
-  const [loaded] = useFonts({
-    HelveticaRegular: require('../../assets/fonts/HelveticaNeue-Regular.otf'),
-    HelveticaBold: require('../../assets/fonts/HelveticaNeue-Bold.otf'),
-    HelveticaMedium: require('../../assets/fonts/HelveticaNeue-Medium.otf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -28,7 +9,7 @@ export default function ProfileScreen() {
       </View>
       
       <View style={styles.content}>
-        <Text>Coming Soon!</Text>
+      <Text style={{ fontFamily: 'HelveticaMedium' }}>Coming Soon!</Text>
       </View>
     </SafeAreaView>
   );
@@ -44,7 +25,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
     color: '#fff',
     fontFamily: 'HelveticaBold',
   },
@@ -61,7 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     margin: 25,
-    fontFamily: 'HelveticaRegular',
+    fontFamily: 'HelveticaMedium',
   },
   placeholder: {
     color: '#333',

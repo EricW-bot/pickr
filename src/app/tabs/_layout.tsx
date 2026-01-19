@@ -15,6 +15,9 @@ export default function TabLayout() {
       initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarLabelStyle: {
+          fontFamily: 'HelveticaMedium',
+        },
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: Platform.select({
