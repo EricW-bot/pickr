@@ -4,6 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
 export default function DeckScreen() {
+  const [loaded] = useFonts({
+    HelveticaRegular: require('../../assets/fonts/HelveticaNeue-Regular.otf'),
+    HelveticaBold: require('../../assets/fonts/HelveticaNeue-Bold.otf'),
+    HelveticaMedium: require('../../assets/fonts/HelveticaNeue-Medium.otf'),
+  });
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
