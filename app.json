@@ -38,15 +38,7 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "expo-font",
-      {
-        "fonts": [
-          "./assets/fonts/HelveticaNeue-Regular.otf",
-          "./assets/fonts/HelveticaNeue-Bold.otf",
-          "./assets/fonts/HelveticaNeue-Medium.otf"
-        ]
-      }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
