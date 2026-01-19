@@ -1,6 +1,7 @@
-import { StyleSheet, View, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import HoloCard from '@/src/components/HoloCard';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
 
 export default function DeckScreen() {
   return (
@@ -12,7 +13,7 @@ export default function DeckScreen() {
       <View style={styles.content}>
         {/* Render the Card */}
         <HoloCard 
-          title="Chiefs Defense" 
+          title="DEMO_CARD" 
           damage={85} 
         />
       </View>
@@ -32,6 +33,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '800',
     color: '#fff',
+    fontFamily: 'HelveticaBold',
   },
   subtitle: {
     fontSize: 16,

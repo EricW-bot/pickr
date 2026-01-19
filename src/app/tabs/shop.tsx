@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '800',
     color: '#fff',
+    fontFamily: 'HelveticaBold',
   },
   subtitle: {
     fontSize: 16,
@@ -37,6 +38,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    fontFamily: 'HelveticaRegular',
   },
   placeholder: {
     color: '#333',

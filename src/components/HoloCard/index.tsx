@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import { Canvas, Rect, Shader } from "@shopify/react-native-skia";
 import { DeviceMotion } from 'expo-sensors';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
+import React, { useEffect } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import Animated, {
   interpolate,
-  useDerivedValue
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 import { foilShader } from './shader';
 
@@ -69,12 +69,12 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
       {/* Background Content */}
       <View style={styles.cardContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{title} </Text>
           <View style={styles.damageBadge}>
             <Text style={styles.damageText}>{damage}</Text>
           </View>
         </View>
-        <Text style={styles.placeholderArt}>[ ARTWORK ]</Text>
+        {/* <Text style={styles.placeholderArt}>[ ARTWORK ]</Text> */}
       </View>
 
       {/* Holographic Overlay */}
