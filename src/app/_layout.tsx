@@ -32,10 +32,8 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        {/* Changed name="(tabs)" to name="tabs" to match folder name */}
         <Stack.Screen name="tabs" options={{ headerShown: false }} />
         <Stack.Screen name="battle/index" options={{ title: 'Battle' }} />
-        {/* <Stack.Screen name="+not-found" /> */}
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

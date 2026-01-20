@@ -10,7 +10,6 @@ export default function DeckScreen() {
       </View>
       
       <View style={styles.content}>
-        {/* Render the Card */}
         <HoloCard 
           title="DEMO_CARD" 
           damage={85} 

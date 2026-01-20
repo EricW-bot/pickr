@@ -37,7 +37,7 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
 
   // 3. Start Sensors
   useEffect(() => {
-    DeviceMotion.setUpdateInterval(16); // ~60fps
+    DeviceMotion.setUpdateInterval(1000/60); // ~60fps
     
     const subscription = DeviceMotion.addListener((data) => {
       if (data.rotation) {
