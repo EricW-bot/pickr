@@ -1,7 +1,7 @@
 import { Canvas, Rect, Shader } from "@shopify/react-native-skia";
 import { DeviceMotion } from 'expo-sensors';
 import React, { useEffect } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -37,7 +37,7 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
 
   // 3. Start Sensors
   useEffect(() => {
-    DeviceMotion.setUpdateInterval(1000/60); // ~60fps
+    DeviceMotion.setUpdateInterval(1000/120); // ~120fps
     
     const subscription = DeviceMotion.addListener((data) => {
       if (data.rotation) {
@@ -74,7 +74,7 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
             <Text style={styles.damageText}>{damage}</Text>
           </View>
         </View>
-        {/* <Text style={styles.placeholderArt}>[ ARTWORK ]</Text> */}
+        <Image source={{uri: 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}} style={styles.cardArt} />
       </View>
 
       {/* Holographic Overlay */}
@@ -141,5 +141,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 100,
     opacity: 0.5,
-  }
+  },
+  cardArt: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
 });
