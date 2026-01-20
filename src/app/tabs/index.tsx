@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 100,
   },
   placeholder: {
     color: '#333',
