@@ -1,7 +1,7 @@
 import { Canvas, Rect, Shader } from "@shopify/react-native-skia";
-import { DeviceMotion } from 'expo-sensors';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -18,12 +18,19 @@ const CARD_HEIGHT = CARD_WIDTH * 1.5;
 interface HoloCardProps {
   title: string;
   damage: number;
+  rarity?: 'common' | 'rare' | 'legendary';
 }
 
-export default function HoloCard({ title, damage }: HoloCardProps) {
+export default function HoloCard({ title, damage, rarity = 'common' }: HoloCardProps) {
+  // Convert rarity string to number for shader: common=0, rare=1, legendary=2
+  const rarityValue = rarity === 'common' ? 0 : rarity === 'rare' ? 1 : 2;
   // 1. Setup Animation Values (Reanimated)
   const roll = useSharedValue(0);
   const pitch = useSharedValue(0);
+  
+  // Track the starting position for smooth dragging
+  const startRoll = useSharedValue(0);
+  const startPitch = useSharedValue(0);
 
   // 2. Prepare Uniforms for Skia
   // We wrap them in a derived value so Skia can read them as a single object
@@ -32,23 +39,34 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
       resolution: [CARD_WIDTH, CARD_HEIGHT],
       roll: roll.value,
       pitch: pitch.value,
+      rarity: rarityValue,
     };
   });
 
-  // 3. Start Sensors
-  useEffect(() => {
-    DeviceMotion.setUpdateInterval(1000/120); // ~120fps
-    
-    const subscription = DeviceMotion.addListener((data) => {
-      if (data.rotation) {
-        // Smoothly animate the values
-        roll.value = withSpring(data.rotation.gamma, { damping: 20 });
-        pitch.value = withSpring(data.rotation.beta, { damping: 20 });
-      }
+  // 3. Pan Gesture Handler (Finger Drag)
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      // Store the current values when drag starts
+      startRoll.value = roll.value;
+      startPitch.value = pitch.value;
+    })
+    .onUpdate((event) => {
+      // Convert drag position to roll/pitch values
+      // Normalize to -1 to 1 range based on card dimensions
+      // Horizontal drag controls roll (left/right tilt)
+      const newRoll = startRoll.value + (event.translationX / (CARD_WIDTH / 2));
+      // Vertical drag controls pitch (up/down tilt)
+      const newPitch = startPitch.value + (event.translationY / (CARD_HEIGHT / 2));
+      
+      // Clamp values to reasonable range
+      roll.value = Math.max(-1, Math.min(1, newRoll));
+      pitch.value = Math.max(-1, Math.min(1, newPitch));
+    })
+    .onEnd(() => {
+      // Spring back to center when finger is released
+      roll.value = withSpring(0, { damping: 15, stiffness: 150 });
+      pitch.value = withSpring(0, { damping: 15, stiffness: 150 });
     });
-
-    return () => subscription.remove();
-  }, []);
 
   // 4. 3D Transform Style (Physical Rotation)
   const rStyle = useAnimatedStyle(() => {
@@ -65,25 +83,34 @@ export default function HoloCard({ title, damage }: HoloCardProps) {
   });
 
   return (
-    <Animated.View style={[styles.container, rStyle]}>
-      {/* Background Content */}
-      <View style={styles.cardContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{title} </Text>
-          <View style={styles.damageBadge}>
-            <Text style={styles.damageText}>{damage}</Text>
+    <GestureDetector gesture={panGesture}>
+      <Animated.View style={[styles.container, rStyle]}>
+        {/* Background Content */}
+        <View style={styles.cardContent}>
+          <View style={styles.header}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+                {title}
+              </Text>
+            </View>
+            <View style={styles.damageBadge}>
+              <Text style={styles.damageText}>{damage}</Text>
+            </View>
           </View>
+          <Image 
+            source={{uri: 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}} 
+            style={styles.cardArt} 
+          />
         </View>
-        <Image source={{uri: 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}} style={styles.cardArt} />
-      </View>
 
-      {/* Holographic Overlay */}
-      <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Rect x={0} y={0} width={CARD_WIDTH} height={CARD_HEIGHT}>
-          <Shader source={foilShader} uniforms={uniforms} />
-        </Rect>
-      </Canvas>
-    </Animated.View>
+        {/* Holographic Overlay */}
+        <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Rect x={0} y={0} width={CARD_WIDTH} height={CARD_HEIGHT}>
+            <Shader source={foilShader} uniforms={uniforms} />
+          </Rect>
+        </Canvas>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -111,6 +138,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 8,
+    minWidth: 0, // Allows flex to shrink below content size
   },
   title: {
     color: 'white',
@@ -118,6 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1,
+    flexShrink: 1,
   },
   damageBadge: {
     backgroundColor: '#ef4444',

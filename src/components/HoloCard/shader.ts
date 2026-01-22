@@ -1,34 +1,57 @@
 import { Skia } from "@shopify/react-native-skia";
 
-// This GLSL code creates a "Linear Interference" rainbow effect
-// It mimics how light bounces off the foil texture of a trading card.
+// This GLSL code creates a subtle holographic highlight with rarity-based color tints
+// rarity: 0 = common (green), 1 = rare (blue), 2 = legendary (gold)
 export const foilShader = Skia.RuntimeEffect.Make(`
   uniform float2 resolution;
   uniform float roll;  // Phone tilt left/right
   uniform float pitch; // Phone tilt up/down
+  uniform float rarity; // 0 = common, 1 = rare, 2 = legendary
 
   const float PI = 3.14159265;
 
   vec4 main(vec2 pos) {
+    // Normalized UV, centered at (0,0)
     vec2 uv = pos / resolution;
-    
-    // 1. Calculate the "Light Angle" based on device tilt
-    // We mix roll and pitch to create a diagonal light source
-    float angle = atan(pitch, roll) + (uv.x * 2.0 + uv.y);
-    
-    // 2. Create "Bands" of light (The holographic ridges)
-    // The sin() function creates repeating stripes
-    float bands = sin(angle * 10.0 + (roll * 5.0));
-    
-    // 3. Colorize the bands (Iridescence)
-    // We use a cosine palette to create a smooth rainbow shift
-    vec3 color = 0.5 + 0.5 * cos(vec3(0.0, 0.33, 0.67) * PI * 2.0 + bands);
-    
-    // 4. Intensity Mask
-    // Only show the shine where the "light" hits strongly
-    float intensity = smoothstep(0.8, 1.0, sin(angle * 5.0 + 2.0));
-    
-    // Return the color with 40% opacity (0.4) so the card art shows through
-    return vec4(color * intensity, 0.4); 
+    vec2 centered = (pos - 0.5 * resolution) / resolution.y;
+
+    // 1. Compute a light direction from device tilt
+    vec2 lightDir = normalize(vec2(roll, -pitch) + 0.001);
+
+    // 2. Very subtle stripes with low frequency
+    float stripeCoord = dot(centered, lightDir) * 2.5 + atan(pitch, roll) * 1.5;
+    float bands = sin(stripeCoord) * 0.3 + 0.7; // Softer, less harsh
+
+    // 3. Rarity-based color tints
+    vec3 rarityTint;
+    if (rarity < 0.5) {
+      // Common - Green tint (0.0)
+      rarityTint = vec3(0.2, 0.4, 0.25);
+    } else if (rarity < 1.5) {
+      // Rare - Blue tint (1.0)
+      rarityTint = vec3(0.2, 0.3, 0.5);
+    } else {
+      // Legendary - Gold tint (2.0)
+      rarityTint = vec3(0.5, 0.4, 0.2);
+    }
+
+    // 4. Subtle iridescent shimmer mixed with rarity tint
+    vec3 rainbow = 0.5 + 0.3 * cos(vec3(0.0, 0.33, 0.67) * PI * 2.0 + bands);
+    vec3 color = mix(rarityTint, rainbow, 0.4);
+
+    // 5. Vignette so the effect is strongest near the center
+    float dist = length(centered);
+    float vignette = 1.0 - smoothstep(0.2, 0.9, dist);
+
+    // 6. Scale intensity by how much the card is tilted (more subtle)
+    float tiltStrength = clamp(length(vec2(roll, pitch)) * 1.2, 0.0, 1.0);
+
+    // Final intensity: very subtle and localized
+    float intensity = vignette * tiltStrength * 0.4;
+
+    // Very low alpha to keep underlying art clearly visible
+    float alpha = 0.15 * intensity;
+
+    return vec4(color * intensity, alpha);
   }
 `)!;
