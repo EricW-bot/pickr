@@ -4,11 +4,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { capitalCase } from 'change-case';
 
 export default function InspectScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     cardId: string;
+    type: string;
     title: string;
     damage: string;
     description?: string;
@@ -60,6 +62,13 @@ export default function InspectScreen() {
         </View>
       )}
 
+      {params.type && (
+        <View style={styles.detailsContainer}>
+          <Text style={styles.detailsLabel}>Category</Text>
+          <Text style={styles.detailsText}>{capitalCase(params.type)}</Text>
+        </View>
+      )}
+
       {params.rarity && (
         <View style={styles.detailsContainer}>
           <Text style={styles.detailsLabel}>Rarity</Text>
@@ -67,7 +76,7 @@ export default function InspectScreen() {
             {params.rarity.toUpperCase()}
           </Text>
         </View>
-      )}
+      )}    
     </SafeAreaView>
   );
 }

@@ -110,6 +110,7 @@ export default function DeckScreen() {
                     damage: item.damage?.toString() || '0',
                     description: item.description || '',
                     rarity: item.rarity || '',
+                    type: item.type || '',
                   },
                 });
               }}
