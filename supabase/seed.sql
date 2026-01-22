@@ -1,5 +1,5 @@
-INSERT INTO public.cards (event_id, type, title, description, rarity, probability, damage, status)
+INSERT INTO public.cards (event_id, type, title, description, image_url, rarity, probability, damage, status)
 VALUES
-  ('evt_001', 'sports', 'Chiefs Defense', 'Kansas City holds the line.', 'rare', 0.75, 85, 'pending'),
-  ('evt_002', 'finance', 'Bitcoin Rally', 'BTC breaks $100k resistance.', 'legendary', 0.10, 500, 'pending'),
-  ('evt_003', 'entropy', 'Solar Flare', 'X-Class flare detected.', 'common', 0.90, 10, 'pending');
+  ('evt_001', 'sports', 'Chiefs Defense', 'Kansas City holds the line.', 'https://i.redd.it/chiefs-great-new-portraits-by-the-team-photographer-have-v0-av1ffoydj9bf1.jpg?width=1080&format=pjpg&auto=webp&s=b92569180f53d33dbd18d36246cb54e13af14a18', 'rare', 0.75, 85, 'pending'),
+  ('evt_002', 'finance', 'Bitcoin Rally', 'BTC breaks $100k resistance.', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ_hkDU3FU4x24ggX7dl-G8bINxYqIiACpDQ&s', 'legendary', 0.10, 500, 'pending'),
+  ('evt_003', 'entropy', 'Solar Flare', 'X-Class flare detected.', 'https://cdn.mos.cms.futurecdn.net/v2/t:0,l:240,cw:1440,ch:1080,q:80,w:1440/j4g6mjV3tNakpuQHDgKLuR.jpg', 'common', 0.90, 10, 'pending');

@@ -19,9 +19,10 @@ interface HoloCardProps {
   title: string;
   damage: number;
   rarity?: 'common' | 'rare' | 'legendary';
+  image_url: string;
 }
 
-export default function HoloCard({ title, damage, rarity = 'common' }: HoloCardProps) {
+export default function HoloCard({ title, damage, rarity = 'common', image_url }: HoloCardProps) {
   // Convert rarity string to number for shader: common=0, rare=1, legendary=2
   const rarityValue = rarity === 'common' ? 0 : rarity === 'rare' ? 1 : 2;
   // 1. Setup Animation Values (Reanimated)
@@ -98,7 +99,7 @@ export default function HoloCard({ title, damage, rarity = 'common' }: HoloCardP
             </View>
           </View>
           <Image 
-            source={{uri: 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}} 
+            source={{uri: `${image_url}`}} 
             style={styles.cardArt} 
           />
         </View>
@@ -178,7 +179,10 @@ const styles = StyleSheet.create({
   },
   cardArt: {
     width: '100%',
+    maxWidth: CARD_WIDTH - 40, // Account for padding (20 on each side)
     height: '100%',
+    maxHeight: CARD_HEIGHT - 120, // Account for padding and header space
     resizeMode: 'contain',
+    alignSelf: 'center',
   },
 });

@@ -101,6 +101,7 @@ export default function DeckScreen() {
             <CardPreview 
               title={item.title} 
               damage={item.damage || 0}
+              image_url={item.image_url || 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}
               onPress={() => {
                 router.push({
                   pathname: '/inspect',
@@ -111,6 +112,7 @@ export default function DeckScreen() {
                     description: item.description || '',
                     rarity: item.rarity || '',
                     type: item.type || '',
+                    image_url: item.image_url || 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
                   },
                 });
               }}

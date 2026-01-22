@@ -9,9 +9,10 @@ interface CardPreviewProps {
   title: string;
   damage: number;
   onPress?: () => void;
+  image_url: string;
 }
 
-export default function CardPreview({ title, damage, onPress }: CardPreviewProps) {
+export default function CardPreview({ title, damage, onPress, image_url }: CardPreviewProps) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.container, pressed && styles.pressed]}>
       <View style={styles.cardContent}>
@@ -26,7 +27,7 @@ export default function CardPreview({ title, damage, onPress }: CardPreviewProps
           </View>
         </View>
         <Image 
-          source={{uri: 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}} 
+          source={{uri: `${image_url}`}} 
           style={styles.cardArt} 
         />
       </View>
@@ -94,7 +95,10 @@ const styles = StyleSheet.create({
   },
   cardArt: {
     width: '100%',
+    maxWidth: CARD_WIDTH - 40, // Account for padding (20 on each side)
     height: '100%',
+    maxHeight: CARD_HEIGHT - 120, // Account for padding and header space
     resizeMode: 'contain',
+    alignSelf: 'center',
   },
 });

@@ -1,10 +1,10 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import HoloCard from '@/src/components/HoloCard';
+import { capitalCase } from 'change-case';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { capitalCase } from 'change-case';
 
 export default function InspectScreen() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function InspectScreen() {
     damage: string;
     description?: string;
     rarity?: string;
+    image_url?: string;
   }>();
 
   const damage = parseInt(params.damage || '0', 10);
@@ -51,6 +52,7 @@ export default function InspectScreen() {
           title={params.title || 'Unknown Card'} 
           damage={damage}
           rarity={rarity}
+          image_url={params.image_url || 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}
         />
       </View>
 
