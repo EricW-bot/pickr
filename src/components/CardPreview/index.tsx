@@ -100,5 +100,6 @@ const styles = StyleSheet.create({
     maxHeight: CARD_HEIGHT - 120, // Account for padding and header space
     resizeMode: 'contain',
     alignSelf: 'center',
+    borderRadius: 30,
   },
 });
