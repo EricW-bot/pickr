@@ -28,6 +28,7 @@ const MATERIAL_ICONS_MAPPING: MaterialIconsMapping = {
   'info.circle': 'info',
   'xmark': 'close',
   'friends': 'groups',
+  'reset': 'restart-alt',
 };
 
 const MATERIAL_COMMUNITY_ICONS_MAPPING: MaterialCommunityIconsMapping = {

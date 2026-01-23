@@ -20,7 +20,7 @@ export default function BattleScreen() {
   const [loading, setLoading] = useState(true);
   const [isFindingMatch, setIsFindingMatch] = useState(false);
   const [gameStage, setGameStage] = useState<string>('Idle'); // 'Idle', 'Duelling', 'Resolving', etc.
-  const [trophyCount, setTrophyCount] = useState(42);
+  const [trophyCount, setTrophyCount] = useState(67);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
   const router = useRouter();
 

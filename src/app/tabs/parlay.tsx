@@ -3,7 +3,7 @@ import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Helper type for our specific query result
@@ -14,12 +14,15 @@ const H_PADDING = 24;
 const GRID_GAP = 10;
 const TILE_WIDTH = Math.floor((SCREEN_WIDTH - H_PADDING * 2 - GRID_GAP * 2) / 3);
 const TILE_HEIGHT = Math.floor(TILE_WIDTH * 1.35);
+const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - H_PADDING * 2 - GRID_GAP * 2) / 3);
+const SLOT_HEIGHT = Math.floor(SLOT_WIDTH * 1.4);
 
-export default function DeckScreen() {
+export default function ParlayScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedCards, setSelectedCards] = useState<(Card | null)[]>([null, null, null]);
   const router = useRouter();
 
   useEffect(() => {
@@ -65,13 +68,92 @@ export default function DeckScreen() {
     return cards.filter((c) => (c.title || '').toLowerCase().includes(q));
   })();
 
+  const selectedCount = selectedCards.filter((c) => c !== null).length;
+
+  const handleCardSelect = (card: Card) => {
+    // Do not allow the same card to be used twice
+    const alreadySelected = selectedCards.some((c) => c?.id === card.id);
+    if (alreadySelected) {
+      return;
+    }
+
+    // Find first empty slot
+    const emptyIndex = selectedCards.findIndex((c) => c === null);
+    if (emptyIndex !== -1) {
+      const newSelected = [...selectedCards];
+      newSelected[emptyIndex] = card;
+      setSelectedCards(newSelected);
+    } else {
+      // All slots full, replace the first one
+      const newSelected = [...selectedCards];
+      newSelected[0] = card;
+      setSelectedCards(newSelected);
+    }
+  };
+
+  const clearSlot = (index: number) => {
+    if (!selectedCards[index]) return;
+    const newSelected = [...selectedCards];
+    newSelected[index] = null;
+    setSelectedCards(newSelected);
+  };
+
+  const handleReset = () => {
+    setSelectedCards([null, null, null]);
+  };
+
+  const renderCardSlot = (index: number) => {
+    const card = selectedCards[index];
+    
+    if (card) {
+      return (
+        <View key={index} style={styles.cardSlot}>
+          <View style={styles.cardSlotTopRow}>
+            <Text style={styles.cardSlotDamage}>{card.damage || 0}</Text>
+            <Pressable
+              onPress={() => clearSlot(index)}
+              style={({ pressed }) => [
+                styles.slotClearButton,
+                pressed && styles.slotClearButtonPressed,
+              ]}
+            >
+              <IconSymbol name="xmark" size={12} color="#fecaca" />
+            </Pressable>
+          </View>
+          <View style={styles.cardSlotImageWrap}>
+            <Image
+              source={{
+                uri:
+                  card.image_url ||
+                  'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
+              }}
+              style={styles.cardSlotImage}
+            />
+          </View>
+          <Text style={styles.cardSlotTitle} numberOfLines={2} ellipsizeMode="tail">
+            {card.title}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View key={index} style={styles.emptySlot}>
+        <View style={styles.emptySlotPlus}>
+          <View style={styles.plusHorizontal} />
+          <View style={styles.plusVertical} />
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           <View style={styles.headerLeft}>
             <Text style={styles.title}>Parlay</Text>
-            <Text style={styles.subtitle}>Search and select 3 cards.</Text>
+            <Text style={styles.subtitle}>Select 3 cards for your parlay.</Text>
           </View>
           <Pressable
             onPress={() => setShowInfoModal(true)}
@@ -98,57 +180,104 @@ export default function DeckScreen() {
         </View>
       </View>
 
-      <FlatList
-        data={filteredCards}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        numColumns={3}
-        columnWrapperStyle={styles.columnWrapper}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
-            onPress={() => {
-              router.push({
-                pathname: '/inspect',
-                params: {
-                  cardId: item.id,
-                  title: item.title,
-                  damage: item.damage?.toString() || '0',
-                  description: item.description || '',
-                  rarity: item.rarity || '',
-                  type: item.type || '',
-                  image_url:
-                    item.image_url ||
-                    'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
-                },
-              });
-            }}
-          >
-            <View style={styles.tileTopRow}>
-              <Text style={styles.tileDamage}>{item.damage || 0}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Selected Cards Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <View style={styles.sectionHeaderLeft}>
+              <Text style={styles.sectionTitle}>Selected Cards</Text>
+              <Text style={styles.sectionMeta}>{selectedCount}/3 cards selected</Text>
             </View>
-            <View style={styles.tileImageWrap}>
-              <Image
-                source={{
-                  uri:
-                    item.image_url ||
-                    'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
-                }}
-                style={styles.tileImage}
-              />
-            </View>
-            <Text style={styles.tileTitle} numberOfLines={2} ellipsizeMode="tail">
-              {item.title}
-            </Text>
-          </Pressable>
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.placeholderTitle}>No cards found</Text>
-            <Text style={styles.placeholder}>Try a different search, or check Supabase connection.</Text>
+            {selectedCount > 0 && (
+              <Pressable
+                onPress={handleReset}
+                style={({ pressed }) => [styles.resetButton, pressed && styles.resetButtonPressed]}
+              >
+                <IconSymbol name="reset" size={18} color="#fff" />
+              </Pressable>
+            )}
           </View>
-        }
-      />
+
+          <View style={styles.slotsContainer}>
+            {[0, 1, 2].map((index) => renderCardSlot(index))}
+          </View>
+        </View>
+
+        {/* All Cards Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>All Cards</Text>
+            <Text style={styles.sectionMeta}>{filteredCards.length} available</Text>
+          </View>
+
+          <View style={styles.cardsGrid}>
+            {filteredCards.map((item) => {
+              const isSelected = selectedCards.some((c) => c?.id === item.id);
+              return (
+                <Pressable
+                  key={item.id}
+                  style={({ pressed }) => [
+                    styles.tile,
+                    isSelected && styles.tileSelected,
+                    pressed && styles.tilePressed,
+                  ]}
+                  onPress={() => {
+                    router.push({
+                      pathname: '/inspect',
+                      params: {
+                        cardId: item.id,
+                        title: item.title,
+                        damage: item.damage?.toString() || '0',
+                        description: item.description || '',
+                        rarity: item.rarity || '',
+                        type: item.type || '',
+                        image_url:
+                          item.image_url ||
+                          'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
+                      },
+                    });
+                  }}
+                >
+                  <View style={styles.tileTopRow}>
+                    <Text style={styles.tileDamage}>{item.damage || 0}</Text>
+                    <Pressable
+                      onPress={() => handleCardSelect(item)}
+                      style={({ pressed }) => [
+                        styles.tileAddButton,
+                        pressed && styles.tileAddButtonPressed,
+                        isSelected && styles.tileAddButtonDisabled,
+                      ]}
+                    >
+                      <View style={styles.tilePlusHorizontal} />
+                      <View style={styles.tilePlusVertical} />
+                    </Pressable>
+                  </View>
+                  <View style={styles.tileImageWrap}>
+                    <Image
+                      source={{
+                        uri:
+                          item.image_url ||
+                          'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
+                      }}
+                      style={styles.tileImage}
+                    />
+                  </View>
+                  <Text style={styles.tileTitle} numberOfLines={2} ellipsizeMode="tail">
+                    {item.title}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {filteredCards.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.placeholderTitle}>No cards found</Text>
+              <Text style={styles.placeholder}>Try a different search, or check Supabase connection.</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
 
       {/* Info Modal */}
       <Modal
@@ -311,15 +440,151 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontFamily: 'HelveticaRegular',
   },
-  listContent: {
-    paddingHorizontal: 24,
+  scrollContent: {
     paddingBottom: 120,
-    paddingTop: 8,
   },
-  columnWrapper: {
+  section: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionHeaderLeft: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+  },
+  sectionMeta: {
+    marginTop: 2,
+    fontSize: 12,
+    color: '#888',
+    fontFamily: 'HelveticaMedium',
+  },
+  resetButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resetButtonPressed: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  slotsContainer: {
+    flexDirection: 'row',
     gap: GRID_GAP,
-    marginBottom: GRID_GAP,
+    justifyContent: 'space-between',
+  },
+  cardSlot: {
+    width: SLOT_WIDTH,
+    height: SLOT_HEIGHT,
+    backgroundColor: '#0f0f0f',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    padding: 10,
+    overflow: 'hidden',
+  },
+  cardSlotPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+  cardSlotTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  cardSlotDamage: {
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+    fontSize: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.20)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.45)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  slotClearButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(248, 113, 113, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotClearButtonPressed: {
+    opacity: 0.85,
+  },
+  cardSlotImageWrap: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#1a1a1a',
+  },
+  cardSlotImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardSlotTitle: {
+    marginTop: 8,
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  emptySlot: {
+    width: SLOT_WIDTH,
+    height: SLOT_HEIGHT,
+    backgroundColor: '#0a0a0a',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#333',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  emptySlotPlus: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  plusHorizontal: {
+    position: 'absolute',
+    width: 24,
+    height: 2,
+    backgroundColor: '#444',
+    borderRadius: 1,
+  },
+  plusVertical: {
+    position: 'absolute',
+    width: 2,
+    height: 24,
+    backgroundColor: '#444',
+    borderRadius: 1,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: GRID_GAP,
+    justifyContent: 'space-between',
   },
   tile: {
     width: TILE_WIDTH,
@@ -330,6 +595,12 @@ const styles = StyleSheet.create({
     borderColor: '#2a2a2a',
     padding: 10,
     overflow: 'hidden',
+    marginBottom: GRID_GAP,
+  },
+  tileSelected: {
+    borderColor: '#4ade80',
+    borderWidth: 2,
+    backgroundColor: '#0f1f0f',
   },
   tilePressed: {
     opacity: 0.85,
@@ -337,7 +608,8 @@ const styles = StyleSheet.create({
   },
   tileTopRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 6,
   },
   tileDamage: {
@@ -351,6 +623,37 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
     overflow: 'hidden',
+  },
+  tileAddButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(74, 222, 128, 0.16)',
+    borderWidth: 1,
+    borderColor: '#4ade80',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  tileAddButtonPressed: {
+    opacity: 0.8,
+  },
+  tileAddButtonDisabled: {
+    opacity: 0.4,
+  },
+  tilePlusHorizontal: {
+    position: 'absolute',
+    width: 10,
+    height: 2,
+    backgroundColor: '#4ade80',
+    borderRadius: 1,
+  },
+  tilePlusVertical: {
+    position: 'absolute',
+    width: 2,
+    height: 10,
+    backgroundColor: '#4ade80',
+    borderRadius: 1,
   },
   tileImageWrap: {
     flex: 1,
