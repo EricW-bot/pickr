@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -6,28 +7,58 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [hapticEnabled, setHapticEnabled] = useState(true);
+
+  // Mock data (replace with real profile later)
+  const username = 'Rick Astley';
+  const level = 12;
+  const xpCurrent = 2450;
+  const xpNext = 3600;
+  const xpPct = useMemo(() => Math.max(0, Math.min(1, xpCurrent / xpNext)), [xpCurrent, xpNext]);
+
+  const wins = 24;
+  const losses = 8;
+  const gamesPlayed = 32;
+  const winRatePct = useMemo(() => {
+    if (!gamesPlayed) return 0;
+    return Math.round((wins / gamesPlayed) * 100);
+  }, [gamesPlayed, wins]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
-        <Text style={styles.subtitle}>Your stats and settings</Text>
+        <View>
+          <Text style={styles.title}>Profile</Text>
+          <Text style={styles.subtitle}>Stats, settings, and your identity.</Text>
+        </View>
+
+        <View style={styles.headerActions}>
+          <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
+            <IconSymbol name="info.circle" size={20} color="#fff" />
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
+            <IconSymbol name="chevron.left.forwardslash.chevron.right" size={20} color="#fff" />
+          </Pressable>
+        </View>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Info */}
         <View style={styles.section}>
           <View style={styles.profileCard}>
-            <View style={styles.avatarPlaceholder}>
+            <View style={styles.avatar}>
               <Text style={styles.avatarText}>RA</Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.username}>Rick Astley</Text>
-              <Text style={styles.userLevel}>Level 12</Text>
+              <Text style={styles.username}>{username}</Text>
+              <Text style={styles.userLevel}>Level {level}</Text>
+
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBarBackground}>
-                  <View style={[styles.progressBarFill, { width: '68%' }]} />
+                  <View style={[styles.progressBarFill, { width: `${Math.round(xpPct * 100)}%` }]} />
                 </View>
-                <Text style={styles.progressText}>2,450 / 3,600 XP</Text>
+                <Text style={styles.progressText}>
+                  {xpCurrent.toLocaleString()} / {xpNext.toLocaleString()} XP
+                </Text>
               </View>
             </View>
           </View>
@@ -35,37 +66,39 @@ export default function ProfileScreen() {
 
         {/* Stats Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Battle Stats</Text>
-          
-          <View style={styles.statsGrid}>
-            {/* Simple count stats */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeaderRow}>
-                <Text style={styles.statLabel}>Wins</Text>
-                <Text style={styles.statValue}>24</Text>
-              </View>
-            </View>
-            <View style={styles.statCard}>
-              <View style={styles.statHeaderRow}>
-                <Text style={styles.statLabel}>Losses</Text>
-                <Text style={styles.statValue}>8</Text>
-              </View>
-            </View>
-            <View style={styles.statCard}>
-              <View style={styles.statHeaderRow}>
-                <Text style={styles.statLabel}>Games Played</Text>
-                <Text style={styles.statValue}>32</Text>
-              </View>
-            </View>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Battle Stats</Text>
+            <Text style={styles.sectionMeta}>Lifetime</Text>
+          </View>
 
-            {/* Progress-style stat only for percentage metric */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeaderRow}>
-                <Text style={styles.statLabel}>Win Rate</Text>
-                <Text style={styles.statValue}>75%</Text>
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Wins</Text>
               </View>
-              <View style={styles.statBarBackground}>
-                <View style={[styles.statBarFill, { width: '75%' }]} />
+              <Text style={styles.rowValue}>{wins}</Text>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Losses</Text>
+              </View>
+              <Text style={styles.rowValue}>{losses}</Text>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Games Played</Text>
+              </View>
+              <Text style={styles.rowValue}>{gamesPlayed}</Text>
+            </View>
+            <View style={[styles.row, styles.rowNoDivider]}>
+              <View style={styles.rowMain}>
+                <View style={styles.rowTopLine}>
+                  <Text style={styles.rowLabel}>Win Rate</Text>
+                  <Text style={styles.rowValue}>{winRatePct}%</Text>
+                </View>
+                <View style={styles.statBarBackground}>
+                  <View style={[styles.statBarFill, { width: `${winRatePct}%` }]} />
+                </View>
               </View>
             </View>
           </View>
@@ -73,38 +106,53 @@ export default function ProfileScreen() {
 
         {/* Settings Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          
-          <Pressable 
-            style={styles.settingItem}
-            onPress={() => setNotificationsEnabled(!notificationsEnabled)}
-          >
-            <Text style={styles.settingLabel}>Notifications</Text>
-            <Text style={styles.settingValue}>{notificationsEnabled ? 'Enabled' : 'Disabled'}</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.settingItem}
-            onPress={() => setSoundEnabled(!soundEnabled)}
-          >
-            <Text style={styles.settingLabel}>Sound Effects</Text>
-            <Text style={styles.settingValue}>{soundEnabled ? 'Enabled' : 'Disabled'}</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.settingItem}
-            onPress={() => setHapticEnabled(!hapticEnabled)}
-          >
-            <Text style={styles.settingLabel}>Haptic Feedback</Text>
-            <Text style={styles.settingValue}>{hapticEnabled ? 'Enabled' : 'Disabled'}</Text>
-          </Pressable>
-          
-          <Pressable style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Text style={styles.settingLabel}>Friends & Social</Text>
-              <Text style={styles.settingSubtext}>Connect with other players</Text>
-            </View>
-          </Pressable>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Settings</Text>
+            <Text style={styles.sectionMeta}>Tap to toggle</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+            >
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Notifications</Text>
+                <Text style={styles.rowSubtle}>Game updates and friend activity</Text>
+              </View>
+              <Text style={styles.rowValueMuted}>{notificationsEnabled ? 'On' : 'Off'}</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              onPress={() => setSoundEnabled(!soundEnabled)}
+            >
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Sound Effects</Text>
+                <Text style={styles.rowSubtle}>UI clicks and battle SFX</Text>
+              </View>
+              <Text style={styles.rowValueMuted}>{soundEnabled ? 'On' : 'Off'}</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              onPress={() => setHapticEnabled(!hapticEnabled)}
+            >
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Haptic Feedback</Text>
+                <Text style={styles.rowSubtle}>Vibration for important actions</Text>
+              </View>
+              <Text style={styles.rowValueMuted}>{hapticEnabled ? 'On' : 'Off'}</Text>
+            </Pressable>
+
+            <Pressable style={({ pressed }) => [styles.row, styles.rowNoDivider, pressed && styles.rowPressed]}>
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Friends & Social</Text>
+                <Text style={styles.rowSubtle}>Connect with other players</Text>
+              </View>
+              <IconSymbol name="chevron.right" size={18} color="#888" />
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -118,6 +166,10 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 24,
+    paddingBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   title: {
     fontSize: 32,
@@ -130,11 +182,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: 'HelveticaMedium',
   },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     paddingBottom: 100,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingTop: 4,
+    right: 20,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconButtonPressed: {
+    opacity: 0.75,
   },
   section: {
     paddingHorizontal: 24,
@@ -144,22 +210,34 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
     fontFamily: 'HelveticaBold',
-    marginBottom: 16,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionMeta: {
+    fontSize: 12,
+    color: '#888',
+    fontFamily: 'HelveticaMedium',
   },
   profileCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: '#0f0f0f',
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2a2a2a',
   },
-  avatarPlaceholder: {
+  avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -180,7 +258,7 @@ const styles = StyleSheet.create({
   },
   userLevel: {
     fontSize: 14,
-    color: '#999',
+    color: '#888',
     fontFamily: 'HelveticaRegular',
     marginBottom: 8,
   },
@@ -189,7 +267,7 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 6,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#222',
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 4,
@@ -201,40 +279,60 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 11,
-    color: '#666',
+    color: '#888',
     fontFamily: 'HelveticaRegular',
   },
-  statsGrid: {
-    flexDirection: 'column',
-  },
-  statCard: {
-    width: '100%',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 10,
+  card: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',
-    minHeight: 56,
-    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  statHeaderRow: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  rowNoDivider: {
+    borderBottomWidth: 0,
+  },
+  rowPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  rowMain: {
+    flex: 1,
+    minWidth: 0,
+  },
+  rowTopLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  statValue: {
-    fontSize: 18,
+  rowLabel: {
     color: '#fff',
     fontFamily: 'HelveticaBold',
+    fontSize: 14,
   },
-  statLabel: {
+  rowSubtle: {
+    marginTop: 2,
+    color: '#888',
+    fontFamily: 'HelveticaRegular',
     fontSize: 12,
-    color: '#666',
+  },
+  rowValue: {
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+    fontSize: 14,
+  },
+  rowValueMuted: {
+    color: '#888',
     fontFamily: 'HelveticaMedium',
-    textTransform: 'uppercase',
+    fontSize: 12,
   },
   statBarBackground: {
     width: '100%',
@@ -247,55 +345,5 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 3,
     backgroundColor: '#4ade80',
-  },
-  settingItem: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-  },
-  settingLabel: {
-    fontSize: 16,
-    color: '#fff',
-    fontFamily: 'HelveticaMedium',
-  },
-  settingValue: {
-    fontSize: 14,
-    color: '#999',
-    fontFamily: 'HelveticaRegular',
-  },
-  settingLabelContainer: {
-    flex: 1,
-  },
-  settingSubtext: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'HelveticaRegular',
-    marginTop: 4,
-  },
-  placeholderCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    opacity: 0.6,
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'HelveticaMedium',
-    marginBottom: 4,
-  },
-  placeholderSubtext: {
-    fontSize: 14,
-    color: '#444',
-    fontFamily: 'HelveticaRegular',
   },
 });

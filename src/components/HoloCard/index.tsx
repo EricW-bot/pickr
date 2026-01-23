@@ -121,20 +121,20 @@ const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 20,
-    backgroundColor: '#1a1a1a',
-    borderWidth: 8,
+    borderRadius: 16,
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
     borderColor: '#2a2a2a',
     overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
     elevation: 10,
   },
   cardContent: {
     flex: 1,
-    padding: 20,
+    padding: 16,
     justifyContent: 'space-between',
   },
   header: {
@@ -149,27 +149,25 @@ const styles = StyleSheet.create({
     minWidth: 0, // Allows flex to shrink below content size
   },
   title: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'HelveticaBold',
     flexShrink: 1,
   },
   damageBadge: {
-    backgroundColor: '#ef4444',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: 'rgba(239, 68, 68, 0.20)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
   },
   damageText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'HelveticaBold',
   },
   placeholderArt: {
     color: '#333',
@@ -180,11 +178,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   imageContainer: {
-    width: CARD_WIDTH - 50, // Account for padding (20 on each side)
-    height: CARD_HEIGHT - 140, // Account for padding and header space
-    borderRadius: 30,
+    width: CARD_WIDTH - 32, // padding 16 each side
+    height: CARD_HEIGHT - 110, // header + padding
+    borderRadius: 12,
     overflow: 'hidden',
     alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#1a1a1a',
   },
   cardArt: {
     width: '100%',

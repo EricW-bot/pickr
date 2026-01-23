@@ -1,25 +1,63 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import CardPreview from '@/src/components/CardPreview';
 import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Helper type for our specific query result
 type Card = Database['public']['Tables']['cards']['Row'];
 
-export default function DeckScreen() {
+type LiveCard = {
+  id: string;
+  title: string;
+  status: string; // e.g., "Q3 14-10"
+};
+
+export default function BattleScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [isBattleMode, setIsBattleMode] = useState(false);
+  const [isFindingMatch, setIsFindingMatch] = useState(false);
+  const [gameStage, setGameStage] = useState<string>('Idle'); // 'Idle', 'Duelling', 'Resolving', etc.
+  const [trophyCount, setTrophyCount] = useState(42);
+  const pulseAnim = React.useRef(new Animated.Value(1)).current;
   const router = useRouter();
+
+  // Mock live cards data (replace with real data later)
+  const liveCards: LiveCard[] = [
+    { id: '1', title: 'Chiefs vs Raiders', status: 'Q3 14-10' },
+    { id: '2', title: 'Bitcoin Rally', status: 'Live $102,450' },
+    { id: '3', title: 'Solar Flare', status: 'Active X-Class' },
+  ];
 
   useEffect(() => {
     fetchCards();
   }, []);
+
+  useEffect(() => {
+    if (isFindingMatch) {
+      // Start pulsing animation
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isFindingMatch]);
 
   async function fetchCards() {
     try {
@@ -46,6 +84,22 @@ export default function DeckScreen() {
     }
   }
 
+  const handleBattlePress = () => {
+    if (isFindingMatch) {
+      setIsFindingMatch(false);
+      setGameStage('Idle');
+    } else {
+      setIsFindingMatch(true);
+      setGameStage('Finding Match');
+      // Simulate finding match - in real app, this would connect to matchmaking
+      setTimeout(() => {
+        setGameStage('Duelling');
+        // After some time, stop finding and enter battle
+        setIsFindingMatch(false);
+      }, 5000);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -54,109 +108,95 @@ export default function DeckScreen() {
     );
   }
 
+  const animatedButtonStyle = {
+    transform: [{ scale: pulseAnim }],
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerContent}>
+        <View style={styles.headerTopRow}>
           <View>
-            <Text style={styles.title}>Main</Text>
-            <Text style={styles.subtitle}>{cards.length} / 3 Cards Selected</Text>
+            <Text style={styles.title}>Battle</Text>
+            <Text style={styles.subtitle}>Challenge opponents. Win trophies.</Text>
           </View>
-          <Pressable
-            onPress={() => setShowInfoModal(true)}
-            style={({ pressed }) => [
-              styles.infoButton,
-              pressed && styles.infoButtonPressed,
-            ]}
-          >
-            <IconSymbol name="info.circle" size={24} color="#fff" />
-          </Pressable>
+          <View style={styles.trophyPill}>
+            <IconSymbol name="trophy" size={16} color="#ffd700" />
+            <Text style={styles.trophyCount}>{trophyCount}</Text>
+          </View>
         </View>
       </View>
 
-      {/* Battle bar button */}
-      <View style={styles.battleBarContainer}>
-        <Pressable 
-          style={[
-            styles.battleButton,
-            isBattleMode && styles.battleButtonCancel
-          ]} 
-          onPress={() => setIsBattleMode(!isBattleMode)}
-        >
-          <Text style={styles.battleButtonText}>
-            {isBattleMode ? 'CANCEL' : 'BATTLE'}
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Cards heading */}
-      <Text style={styles.cardsHeading}>Cards</Text>
-
-      <FlatList
-        data={cards}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={styles.cardWrapper}>
-            <CardPreview 
-              title={item.title} 
-              damage={item.damage || 0}
-              image_url={item.image_url || 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3'}
-              onPress={() => {
-                router.push({
-                  pathname: '/inspect',
-                  params: {
-                    cardId: item.id,
-                    title: item.title,
-                    damage: item.damage?.toString() || '0',
-                    description: item.description || '',
-                    rarity: item.rarity || '',
-                    type: item.type || '',
-                    image_url: item.image_url || 'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
-                  },
-                });
-              }}
-            />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Battle Button Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Matchmaking</Text>
+            <Text style={styles.sectionMeta}>{isFindingMatch ? 'Searching...' : 'Ready'}</Text>
           </View>
-        )}
-        ListEmptyComponent={
-          <Text style={styles.placeholder}>No cards found. Check Supabase connection.</Text>
-        }
-      />
 
-      {/* Info Modal */}
-      <Modal
-        visible={showInfoModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowInfoModal(false)}
-      >
-        <Pressable 
-          style={styles.modalOverlay}
-          onPress={() => setShowInfoModal(false)}
-        >
-          <Pressable 
-            style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>How to Inspect Cards</Text>
+          <View style={styles.card}>
+            <Animated.View style={animatedButtonStyle}>
               <Pressable
-                onPress={() => setShowInfoModal(false)}
                 style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.closeButtonPressed,
+                  styles.battleButton,
+                  isFindingMatch && styles.battleButtonFinding,
+                  pressed && styles.battleButtonPressed,
                 ]}
+                onPress={handleBattlePress}
               >
-                <IconSymbol name="xmark" size={20} color="#fff" />
+                <Text style={styles.battleButtonText}>
+                  {isFindingMatch ? 'FINDING MATCH' : 'BATTLE'}
+                </Text>
               </Pressable>
+            </Animated.View>
+            {isFindingMatch && (
+              <Text style={styles.battleSubtext}>Click to cancel search</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Game State Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Game State</Text>
+            <Text style={styles.sectionMeta}>Current</Text>
+          </View>
+
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <View style={styles.rowMain}>
+                <Text style={styles.rowLabel}>Stage</Text>
+                <Text style={styles.rowSubtle}>Current battle phase</Text>
+              </View>
+              <Text style={styles.rowValue}>{gameStage}</Text>
             </View>
-            <Text style={styles.modalText}>
-              Tap on any card in your deck to view it in detail. You can drag your finger across the card to see its holographic effects.
-            </Text>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          </View>
+        </View>
+
+        {/* Live Cards Ticker */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Live Events</Text>
+            <Text style={styles.sectionMeta}>{liveCards.length} active</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tickerContent}
+          >
+            {liveCards.map((card) => (
+              <View key={card.id} style={styles.tickerCard}>
+                <Text style={styles.tickerTitle} numberOfLines={1}>
+                  {card.title}
+                </Text>
+                <Text style={styles.tickerStatus}>{card.status}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -172,8 +212,9 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 24,
+    paddingBottom: 14,
   },
-  headerContent: {
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -190,106 +231,134 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: 'HelveticaMedium',
   },
-  battleBarContainer: {
+  trophyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 20,
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    marginTop: 4,
+    right: 15,
+  },
+  trophyCount: {
+    color: '#ffd700',
+    fontSize: 16,
+    fontFamily: 'HelveticaBold',
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  section: {
     paddingHorizontal: 24,
-    marginBottom: 8,
+    marginBottom: 32,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+  },
+  sectionMeta: {
+    fontSize: 12,
+    color: '#888',
+    fontFamily: 'HelveticaMedium',
+  },
+  card: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    padding: 16,
   },
   battleButton: {
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#2a2a2a',
   },
-  battleButtonCancel: {
-    backgroundColor: '#800020',
-    borderColor: '#a00030',
+  battleButtonFinding: {
+    backgroundColor: '#1a3a2a',
+    borderColor: '#2b6b4d',
+  },
+  battleButtonPressed: {
+    opacity: 0.85,
   },
   battleButtonText: {
     color: '#fff',
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'HelveticaBold',
+    letterSpacing: 1,
   },
-  cardsHeading: {
-    paddingHorizontal: 24,
-    marginTop: 8,
-    marginBottom: 12,
-    fontSize: 24,
+  battleSubtext: {
+    marginTop: 10,
+    color: '#888',
+    fontSize: 12,
+    fontFamily: 'HelveticaRegular',
+    textAlign: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  rowMain: {
+    flex: 1,
+    minWidth: 0,
+  },
+  rowLabel: {
     color: '#fff',
     fontFamily: 'HelveticaBold',
+    fontSize: 14,
   },
-  infoButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
+  rowSubtle: {
+    marginTop: 2,
+    color: '#888',
+    fontFamily: 'HelveticaRegular',
+    fontSize: 12,
+    lineHeight: 16,
   },
-  infoButtonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  rowValue: {
+    marginLeft: 12,
+    color: '#fff',
+    fontFamily: 'HelveticaBold',
+    fontSize: 14,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  tickerContent: {
+    paddingRight: 24,
+    gap: 12,
   },
-  modalContent: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 30,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
+  tickerCard: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#2a2a2a',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minWidth: 180,
+    marginRight: 12,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  tickerTitle: {
     color: '#fff',
+    fontSize: 14,
     fontFamily: 'HelveticaBold',
-    flex: 1,
+    marginBottom: 4,
   },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeButtonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#fff',
-    lineHeight: 24,
-    fontFamily: 'HelveticaRegular',
-  },
-  listContent: {
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  cardWrapper: {
-    marginBottom: 24,
-  },
-  placeholder: {
-    color: '#666',
-    fontFamily: 'HelveticaRegular',
-    marginTop: 20,
+  tickerStatus: {
+    color: '#4ade80',
+    fontSize: 12,
+    fontFamily: 'HelveticaMedium',
   },
 });

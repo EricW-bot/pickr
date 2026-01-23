@@ -40,24 +40,38 @@ export default function TabLayout() {
         tabBarHideOnKeyboard: true,
       }}>
       <Tabs.Screen
-        name="shop"
+        name="market"
         options={{
           title: 'Market',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill" color={color} />,
         }}
       />
       <Tabs.Screen
+        name="parlay"
+        options={{
+          title: 'Parlay',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cards.playing" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: 'My Deck',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Battle',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="battle" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="friends"
+        options={{
+          title: 'Friends',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="friends" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="person.fill" color={color} />,
         }}
       />
     </Tabs>

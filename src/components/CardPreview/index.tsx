@@ -17,11 +17,11 @@ export default function CardPreview({ title, damage, onPress, image_url }: CardP
     <Pressable onPress={onPress} style={({ pressed }) => [styles.container, pressed && styles.pressed]}>
       <View style={styles.cardContent}>
         <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-            {title}
-          </Text>
-        </View>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+              {title}
+            </Text>
+          </View>
           <View style={styles.damageBadge}>
             <Text style={styles.damageText}>{damage}</Text>
           </View>
@@ -41,24 +41,24 @@ const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 20,
-    backgroundColor: '#1a1a1a',
-    borderWidth: 8,
+    borderRadius: 16,
+    backgroundColor: '#0f0f0f',
+    borderWidth: 1,
     borderColor: '#2a2a2a',
     overflow: 'hidden',
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.88,
+    transform: [{ scale: 0.99 }],
   },
   cardContent: {
     flex: 1,
-    padding: 20,
+    padding: 16,
     justifyContent: 'space-between',
   },
   header: {
@@ -68,11 +68,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'HelveticaBold',
     flexShrink: 1,
   },
   titleContainer: {
@@ -81,26 +79,29 @@ const styles = StyleSheet.create({
     minWidth: 0, // Allows flex to shrink below content size
   },
   damageBadge: {
-    backgroundColor: '#ef4444',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: 'rgba(239, 68, 68, 0.20)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
   },
   damageText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'HelveticaBold',
   },
   imageContainer: {
-    width: CARD_WIDTH - 50, // Account for padding (20 on each side)
-    height: CARD_HEIGHT - 140, // Account for padding and header space
-    borderRadius: 30,
+    width: CARD_WIDTH - 32, // padding 16 each side
+    height: CARD_HEIGHT - 110, // header + padding
+    borderRadius: 12,
     overflow: 'hidden',
     alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#1a1a1a',
   },
   cardArt: {
     width: '100%',
