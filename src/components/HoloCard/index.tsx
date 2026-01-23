@@ -98,10 +98,12 @@ export default function HoloCard({ title, damage, rarity = 'common', image_url }
               <Text style={styles.damageText}>{damage}</Text>
             </View>
           </View>
-          <Image 
-            source={{uri: `${image_url}`}} 
-            style={styles.cardArt} 
-          />
+          <View style={styles.imageContainer}>
+            <Image 
+              source={{uri: `${image_url}`}} 
+              style={styles.cardArt} 
+            />
+          </View>
         </View>
 
         {/* Holographic Overlay */}
@@ -177,13 +179,16 @@ const styles = StyleSheet.create({
     marginBottom: 100,
     opacity: 0.5,
   },
+  imageContainer: {
+    width: CARD_WIDTH - 50, // Account for padding (20 on each side)
+    height: CARD_HEIGHT - 140, // Account for padding and header space
+    borderRadius: 30,
+    overflow: 'hidden',
+    alignSelf: 'center',
+  },
   cardArt: {
     width: '100%',
-    maxWidth: CARD_WIDTH - 40, // Account for padding (20 on each side)
     height: '100%',
-    maxHeight: CARD_HEIGHT - 120, // Account for padding and header space
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    borderRadius: 30,
+    resizeMode: 'cover',
   },
 });
