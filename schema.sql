@@ -125,8 +125,9 @@ CREATE TABLE public.users (
   wins integer DEFAULT 0,
   losses integer DEFAULT 0,
   draws integer DEFAULT 0,
-  games_played integer DEFAULT 0,
-  tokens integer,
+  tokens integer DEFAULT 0,
+  trophies integer DEFAULT 0,
+  last_online timestamp with time zone DEFAULT (now() AT TIME ZONE 'utc'::text),
   CONSTRAINT users_pkey PRIMARY KEY (id),
   CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
