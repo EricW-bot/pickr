@@ -16,7 +16,6 @@ export default function ProfileScreen() {
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // User data from auth context
   const [username, setUsername] = useState(user?.username || 'User');
   const [wins, setWins] = useState(user?.wins ?? 0);
   const [losses, setLosses] = useState(user?.losses ?? 0);
@@ -106,7 +105,6 @@ export default function ProfileScreen() {
       setShowSignOutModal(false);
       router.replace('/auth/Signin');
     } else {
-      // Show error - could add error state here if needed
       setShowSignOutModal(false);
     }
   };

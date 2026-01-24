@@ -9,7 +9,7 @@ import { useIsFocused } from '@react-navigation/native';
 export default function MarketScreen() {
   const { user } = useAuth();
   const isFocused = useIsFocused();
-  // Fallback values if user data is not loaded yet
+  
   const [gold, setGold] = useState(user?.gold ?? 0);
   const [dust, setDust] = useState(user?.dust ?? 0);
   const [tokens, setTokens] = useState(user?.tokens ?? 0);
@@ -21,9 +21,7 @@ export default function MarketScreen() {
   async function fetchCurrencies(userId: string) {
     try {
       console.log('Fetching currencies from Supabase...');
-      // NOTE: our generated Supabase types may be out of sync with the DB schema.
-      // Casting here avoids TS "column does not exist" errors during development.
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('users')
         .select(
           `

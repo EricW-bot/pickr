@@ -77,7 +77,7 @@ export default function BattleScreen() {
         .from('cards')
         .select('*')
         .eq('status', 'pending')
-        .order('damage', { ascending: false }); // Show big hitters first
+        .order('damage', { ascending: false }); // Show bigger plays first
 
       if (error) {
         console.error('Error fetching cards:', error);
@@ -96,9 +96,7 @@ export default function BattleScreen() {
   async function fetchTrophies(userId: string) {
     try {
       console.log('Fetching trophies from Supabase...');
-      // NOTE: our generated Supabase types may be out of sync with the DB schema.
-      // Casting here avoids TS "column does not exist" errors during development.
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('users')
         .select('trophies')
         .eq('id', userId)
@@ -127,7 +125,7 @@ export default function BattleScreen() {
     } else {
       setIsFindingMatch(true);
       setGameStage('Finding Match');
-      // Simulate finding match - in real app, this would connect to matchmaking
+      // Simulate finding match - in real app, this connects to matchmaking
       setTimeout(() => {
         setGameStage('Duelling');
         // After some time, stop finding and enter battle

@@ -60,7 +60,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
     async function fetchUser() {
       try {
-        // Query only columns that exist in the database
         const { data, error } = await supabase
           .from('users')
           .select('id, username, gold, dust, trophies, tokens, wins, losses, draws, avatar_url, created_at')
@@ -71,7 +70,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         }
         if (data) {
           console.log('Fetched user:', data);
-          // Type assertion needed because TypeScript types may be out of sync with DB
           const dbData = data as unknown as {
             id: string;
             username: string | null;
@@ -86,7 +84,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             avatar_url: string | null;
             created_at: string | null;
           };
-          // Map the data to UserData, setting missing columns to null
           const userData: UserData = {
             id: dbData.id,
             username: dbData.username ?? null,
@@ -134,8 +131,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   const signOut = async () => {
     try {
-      // Best-effort: mark user as offline right before signing out.
-      // (We do this before `auth.signOut()` so we still have access to the user id/token.)
       try {
         const { data: userRes, error: userErr } = await supabase.auth.getUser();
         if (userErr) {
