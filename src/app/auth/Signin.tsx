@@ -96,7 +96,7 @@ export default function Signin() {
           </Pressable>
 
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>Don't have an account? </Text>
+            <Text style={styles.linkText}>`Don${"'"}t have an account?` </Text>
             <Pressable onPress={() => router.push('./auth/Signup')}>
               <Text style={styles.link}>Sign up</Text>
             </Pressable>
