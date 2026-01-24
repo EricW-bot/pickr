@@ -18,6 +18,8 @@
     "supabase:stop": "npx supabase stop",
     "supabase:status": "npx supabase status",
     "supabase:reset": "npx supabase db reset",
+    "supabase:pull": "npx supabase db pull",
+    "supabase:push": "npx supabase db push",
     "gen-types": "npx supabase gen types typescript --local > src/types/supabase.ts"
   },
   "dependencies": {
