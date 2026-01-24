@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from './auth';
 
@@ -10,6 +10,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
@@ -40,7 +41,16 @@ export default function Signup() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
           <Text style={styles.title}>Pickr</Text>
           <Text style={styles.subtitle}>Create your account</Text>
@@ -76,15 +86,25 @@ export default function Signup() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={[styles.input, error && styles.inputError]}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              placeholderTextColor="#666"
-              secureTextEntry
-              editable={!isPending}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.passwordInput, error && styles.inputError]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                placeholderTextColor="#666"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                editable={!isPending}
+              />
+              <Pressable
+                style={styles.showButton}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={isPending}
+              >
+                <Text style={styles.showButtonText}>Show</Text>
+              </Pressable>
+            </View>
           </View>
 
           {error && (
@@ -110,13 +130,14 @@ export default function Signup() {
           </Pressable>
 
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>Already have an account? </Text>
-            <Pressable onPress={() => router.push('./auth/Signin')}>
+            <Text style={styles.linkText}>Already have an account?</Text>
+            <Pressable onPress={() => router.push('./Signin')}>
               <Text style={styles.link}>Sign in</Text>
             </Pressable>
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -125,6 +146,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -171,6 +195,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'HelveticaRegular',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 52,
+    backgroundColor: '#0f0f0f',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    overflow: 'hidden',
+  },
+  passwordInput: {
+    flex: 1,
+    height: '100%',
+    paddingHorizontal: 16,
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'HelveticaRegular',
+  },
+  showButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    height: '100%',
+    justifyContent: 'center',
+  },
+  showButtonText: {
+    color: '#4ade80',
+    fontSize: 14,
+    fontFamily: 'HelveticaBold',
+  },
   inputError: {
     borderColor: '#ef4444',
   },
@@ -213,6 +266,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 24,
+    gap: 12,
   },
   linkText: {
     color: '#888',

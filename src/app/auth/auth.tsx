@@ -1,9 +1,25 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+interface UserData {
+  id: string;
+  username: string | null;
+  gold: number | null;
+  dust: number | null;
+  tokens: number | null;
+  wins: number | null;
+  losses: number | null;
+  draws: number | null;
+  trophies: number | null;
+  games_played: number | null;
+  avatar_url: string | null;
+  created_at: string | null;
+}
 
 interface AuthContextType {
   session: Session | null | undefined;
+  user: UserData | null;
   signInUser: (email: string, password: string) => Promise<{ success: boolean; data?: any; error?: string }>;
   signOut: () => Promise<{ success: boolean; error?: string }>;
   signUpNewUser: (email: string, password: string, username: string) => Promise<{ success: boolean; data?: any; error?: string }>;
@@ -14,6 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   //Session state (user info, sign-in status)
   const [session, setSession] = useState<any>(undefined);
+  const [user, setUser] = useState<UserData | null>(null);
 
   useEffect(() => {
     async function getInitialSession() {
@@ -36,22 +53,61 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      setUser(null);
+      return;
+    }
 
     async function fetchUser() {
       try {
+        // Query only columns that exist in the database
         const { data, error } = await supabase
           .from('users')
-          .select('id, username, gold, dust, tokens, wins, losses, draws, trophies, games_played')
+          .select('id, username, gold, dust, trophies, tokens, wins, losses, draws, avatar_url, created_at')
           .eq('id', session.user.id)
           .single();
         if (error) {
           throw error;
         }
-        console.log('Fetched user:', data);
-        // Store user data if needed
+        if (data) {
+          console.log('Fetched user:', data);
+          // Type assertion needed because TypeScript types may be out of sync with DB
+          const dbData = data as unknown as {
+            id: string;
+            username: string | null;
+            gold: number | null;
+            dust: number | null;
+            trophies: number | null;
+            tokens: number | null;
+            wins: number | null;
+            losses: number | null;
+            draws: number | null;
+            games_played: number | null;
+            avatar_url: string | null;
+            created_at: string | null;
+          };
+          // Map the data to UserData, setting missing columns to null
+          const userData: UserData = {
+            id: dbData.id,
+            username: dbData.username ?? null,
+            gold: dbData.gold ?? null,
+            dust: dbData.dust ?? null,
+            tokens: dbData.tokens ?? null,
+            wins: dbData.wins ?? null,
+            losses: dbData.losses ?? null,
+            draws: dbData.draws ?? null,
+            games_played: (dbData.wins ?? 0) + (dbData.losses ?? 0) + (dbData.draws ?? 0),
+            trophies: dbData.trophies ?? null,
+            avatar_url: dbData.avatar_url ?? null,
+            created_at: dbData.created_at ?? null,
+          };
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
+        setUser(null);
       }
     };
     fetchUser();
@@ -78,11 +134,35 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   const signOut = async () => {
     try {
+      // Best-effort: mark user as offline right before signing out.
+      // (We do this before `auth.signOut()` so we still have access to the user id/token.)
+      try {
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
+        if (userErr) {
+          console.warn('Could not read current user before sign-out:', userErr.message);
+        }
+
+        const userId = userRes?.user?.id ?? session?.user?.id;
+        if (userId) {
+          const { error: lastOnlineErr } = await (supabase as any)
+            .from('users')
+            .update({ last_online: new Date().toISOString() } as any)
+            .eq('id', userId);
+
+          if (lastOnlineErr) {
+            console.warn('Could not update last_online before sign-out:', lastOnlineErr.message);
+          }
+        }
+      } catch (e) {
+        console.warn('Unexpected error updating last_online before sign-out:', e);
+      }
+
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Supabase sign-out error:', error.message);
         return { success: false, error: error.message };
       }
+      setUser(null);
       return { success: true };
     } catch (error) {
       console.error('Unexpected error during sign-out:', error);
@@ -113,7 +193,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   }
 
   return (
-    <AuthContext.Provider value={{ session, signInUser, signOut, signUpNewUser }}>
+    <AuthContext.Provider value={{ session, user, signInUser, signOut, signUpNewUser }}>
       {children}
     </AuthContext.Provider>
   );

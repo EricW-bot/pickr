@@ -1,8 +1,62 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { supabase } from '@/src/lib/supabase';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../auth/auth';
+import React, { useEffect, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function MarketScreen() {
+  const { user } = useAuth();
+  const isFocused = useIsFocused();
+  // Fallback values if user data is not loaded yet
+  const [gold, setGold] = useState(user?.gold ?? 0);
+  const [dust, setDust] = useState(user?.dust ?? 0);
+  const [tokens, setTokens] = useState(user?.tokens ?? 0);
+
+  useEffect(() => {
+    fetchCurrencies(user?.id ?? '');
+  }, [isFocused]);
+
+  async function fetchCurrencies(userId: string) {
+    try {
+      console.log('Fetching currencies from Supabase...');
+      // NOTE: our generated Supabase types may be out of sync with the DB schema.
+      // Casting here avoids TS "column does not exist" errors during development.
+      const { data, error } = await (supabase as any)
+        .from('users')
+        .select(
+          `
+            gold,
+            dust,
+            tokens
+          `,
+        )
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching currencies:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+      } else {
+        const row = data as unknown as { 
+          gold: number | null, 
+          dust: number | null, 
+          tokens: number | null 
+        } | null;
+        const nextGold = row?.gold ?? 0;
+        const nextDust = row?.dust ?? 0;
+        const nextTokens = row?.tokens ?? 0;
+        console.log(`Successfully fetched ${nextGold} gold, ${nextDust} dust, ${nextTokens} tokens`);
+        setGold(nextGold);
+        setDust(nextDust);
+        setTokens(nextTokens);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -14,17 +68,17 @@ export default function MarketScreen() {
           <View style={styles.currencyBar}>
             <View style={styles.currencyItem}>
               <Text style={styles.currencyLabel}>Gold</Text>
-              <Text style={styles.currencyValue}>1,250</Text>
+              <Text style={styles.currencyValue}>{gold.toLocaleString()}</Text>
             </View>
             <View style={styles.currencyDivider} />
             <View style={styles.currencyItem}>
               <Text style={styles.currencyLabel}>Dust</Text>
-              <Text style={styles.currencyValue}>340</Text>
+              <Text style={styles.currencyValue}>{dust.toLocaleString()}</Text>
             </View>
             <View style={styles.currencyDivider} />
             <View style={styles.currencyItem}>
               <Text style={styles.currencyLabel}>Tokens</Text>
-              <Text style={styles.currencyValue}>12</Text>
+              <Text style={styles.currencyValue}>{tokens.toLocaleString()}</Text>
             </View>
           </View>
         </View>
@@ -286,6 +340,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#fff',
     fontFamily: 'HelveticaBold',
+  },
+  tokenValue: {
+    color: '#38bdf8',
   },
   currencyDivider: {
     width: 1,

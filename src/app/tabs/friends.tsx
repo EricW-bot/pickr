@@ -29,7 +29,8 @@ function initials(name: string) {
 }
 
 export default function FriendsScreen() {
-  const [query, setQuery] = useState('');
+  const [friendsQuery, setFriendsQuery] = useState('');
+  const [clubsQuery, setClubsQuery] = useState('');
 
   // Mock data (replace with Supabase later)
   const requests: Request[] = [
@@ -50,10 +51,16 @@ export default function FriendsScreen() {
   ];
 
   const filteredFriends = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = friendsQuery.trim().toLowerCase();
     if (!q) return friends;
     return friends.filter((f) => f.name.toLowerCase().includes(q));
-  }, [friends, query]);
+  }, [friends, friendsQuery]);
+
+  const filteredClubs = useMemo(() => {
+    const q = clubsQuery.trim().toLowerCase();
+    if (!q) return clubs;
+    return clubs.filter((c) => c.name.toLowerCase().includes(q));
+  }, [clubs, clubsQuery]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,19 +78,6 @@ export default function FriendsScreen() {
             <IconSymbol name="friends" size={20} color="#fff" />
           </Pressable>
         </View>
-      </View>
-
-      <View style={styles.searchRow}>
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search friends..."
-          placeholderTextColor="#666"
-          style={styles.searchInput}
-        />
-        <Pressable style={({ pressed }) => [styles.searchClear, pressed && styles.searchClearPressed]} onPress={() => setQuery('')}>
-          <IconSymbol name="xmark" size={16} color="#fff" />
-        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -129,6 +123,21 @@ export default function FriendsScreen() {
             <Text style={styles.sectionMeta}>{filteredFriends.length}</Text>
           </View>
 
+          <View style={styles.searchRow}>
+            <TextInput
+              value={friendsQuery}
+              onChangeText={setFriendsQuery}
+              placeholder="Search friends..."
+              placeholderTextColor="#666"
+              style={styles.searchInput}
+            />
+            {friendsQuery.length > 0 && (
+              <Pressable style={({ pressed }) => [styles.searchClear, pressed && styles.searchClearPressed]} onPress={() => setFriendsQuery('')}>
+                <IconSymbol name="xmark" size={16} color="#fff" />
+              </Pressable>
+            )}
+          </View>
+
           <View style={styles.card}>
             {filteredFriends.length === 0 ? (
               <View style={styles.emptyInline}>
@@ -165,22 +174,46 @@ export default function FriendsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Clubs</Text>
-            <Text style={styles.sectionMeta}>{clubs.length}</Text>
+            <Text style={styles.sectionMeta}>{filteredClubs.length}</Text>
           </View>
 
-          {clubs.map((c) => (
-            <Pressable key={c.id} style={({ pressed }) => [styles.clubCard, pressed && styles.rowPressed]}>
-              <View style={styles.clubTop}>
-                <Text style={styles.clubName}>{c.name}</Text>
-                <Text style={styles.clubMembers}>{c.members} members</Text>
+          <View style={styles.searchRow}>
+            <TextInput
+              value={clubsQuery}
+              onChangeText={setClubsQuery}
+              placeholder="Search clubs..."
+              placeholderTextColor="#666"
+              style={styles.searchInput}
+            />
+            {clubsQuery.length > 0 && (
+              <Pressable style={({ pressed }) => [styles.searchClear, pressed && styles.searchClearPressed]} onPress={() => setClubsQuery('')}>
+                <IconSymbol name="xmark" size={16} color="#fff" />
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.card}>
+            {filteredClubs.length === 0 ? (
+              <View style={styles.emptyInline}>
+                <Text style={styles.emptyTitle}>No matches</Text>
+                <Text style={styles.emptySubtitle}>Try a different search.</Text>
               </View>
-              <Text style={styles.clubBlurb}>{c.blurb}</Text>
-              <View style={styles.clubFooter}>
-                <Text style={styles.clubFooterText}>View club</Text>
-                <IconSymbol name="chevron.right" size={18} color="#888" />
-              </View>
-            </Pressable>
-          ))}
+            ) : (
+              filteredClubs.map((c) => (
+                <Pressable key={c.id} style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
+                  <View style={styles.rowMain}>
+                    <View style={styles.rowTopLine}>
+                      <Text style={styles.rowTitle}>{c.name}</Text>
+                    </View>
+                    <Text style={styles.rowSubtle}>
+                      {c.members} members • {c.blurb}
+                    </Text>
+                  </View>
+                  <IconSymbol name="chevron.right" size={18} color="#888" />
+                </Pressable>
+              ))
+            )}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -231,8 +264,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   searchRow: {
-    paddingHorizontal: 24,
-    paddingBottom: 14,
+    marginBottom: 12,
     flexDirection: 'row',
     gap: 10,
     alignItems: 'center',

@@ -3,7 +3,7 @@ import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Helper type for our specific query result
@@ -14,8 +14,10 @@ const H_PADDING = 24;
 const GRID_GAP = 10;
 const TILE_WIDTH = Math.floor((SCREEN_WIDTH - H_PADDING * 2 - GRID_GAP * 2) / 3);
 const TILE_HEIGHT = Math.floor(TILE_WIDTH * 1.35);
-const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - H_PADDING * 2 - GRID_GAP * 2) / 3);
-const SLOT_HEIGHT = Math.floor(SLOT_WIDTH * 1.4);
+const SLOT_WIDTH = TILE_WIDTH;
+const SLOT_HEIGHT = TILE_HEIGHT;
+const INSPECT_FALLBACK_IMAGE_URL =
+  'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3';
 
 export default function ParlayScreen() {
   const [cards, setCards] = useState<Card[]>([]);
@@ -102,38 +104,59 @@ export default function ParlayScreen() {
     setSelectedCards([null, null, null]);
   };
 
+  const inspectCard = (card: Card) => {
+    router.push({
+      pathname: '/inspect',
+      params: {
+        cardId: card.id,
+        title: card.title,
+        damage: card.damage?.toString() || '0',
+        description: card.description || '',
+        rarity: card.rarity || '',
+        type: card.type || '',
+        image_url: card.image_url || INSPECT_FALLBACK_IMAGE_URL,
+      },
+    });
+  };
+
   const renderCardSlot = (index: number) => {
     const card = selectedCards[index];
     
     if (card) {
       return (
-        <View key={index} style={styles.cardSlot}>
-          <View style={styles.cardSlotTopRow}>
-            <Text style={styles.cardSlotDamage}>{card.damage || 0}</Text>
+        <Pressable
+          key={index}
+          style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
+          onPress={() => inspectCard(card)}
+        >
+          <View style={styles.tileTopRow}>
+            <Text style={styles.tileDamage}>{card.damage || 0}</Text>
             <Pressable
-              onPress={() => clearSlot(index)}
+              onPress={(e) => {
+                e.stopPropagation();
+                clearSlot(index);
+              }}
               style={({ pressed }) => [
-                styles.slotClearButton,
-                pressed && styles.slotClearButtonPressed,
+                styles.tileAddButton,
+                styles.tileRemoveButton,
+                pressed && styles.tileAddButtonPressed,
               ]}
             >
               <IconSymbol name="xmark" size={12} color="#fecaca" />
             </Pressable>
           </View>
-          <View style={styles.cardSlotImageWrap}>
+          <View style={styles.tileImageWrap}>
             <Image
               source={{
-                uri:
-                  card.image_url ||
-                  'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
+                uri: card.image_url || INSPECT_FALLBACK_IMAGE_URL,
               }}
-              style={styles.cardSlotImage}
+              style={styles.tileImage}
             />
           </View>
-          <Text style={styles.cardSlotTitle} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={styles.tileTitle} numberOfLines={2} ellipsizeMode="tail">
             {card.title}
           </Text>
-        </View>
+        </Pressable>
       );
     }
 
@@ -216,40 +239,35 @@ export default function ParlayScreen() {
               return (
                 <Pressable
                   key={item.id}
-                  style={({ pressed }) => [
-                    styles.tile,
-                    isSelected && styles.tileSelected,
-                    pressed && styles.tilePressed,
-                  ]}
-                  onPress={() => {
-                    router.push({
-                      pathname: '/inspect',
-                      params: {
-                        cardId: item.id,
-                        title: item.title,
-                        damage: item.damage?.toString() || '0',
-                        description: item.description || '',
-                        rarity: item.rarity || '',
-                        type: item.type || '',
-                        image_url:
-                          item.image_url ||
-                          'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
-                      },
-                    });
-                  }}
+                  style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
+                  onPress={() => inspectCard(item)}
                 >
                   <View style={styles.tileTopRow}>
                     <Text style={styles.tileDamage}>{item.damage || 0}</Text>
                     <Pressable
-                      onPress={() => handleCardSelect(item)}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        if (isSelected) {
+                          const slotIndex = selectedCards.findIndex((c) => c?.id === item.id);
+                          if (slotIndex !== -1) clearSlot(slotIndex);
+                          return;
+                        }
+                        handleCardSelect(item);
+                      }}
                       style={({ pressed }) => [
                         styles.tileAddButton,
+                        isSelected && styles.tileRemoveButton,
                         pressed && styles.tileAddButtonPressed,
-                        isSelected && styles.tileAddButtonDisabled,
                       ]}
                     >
-                      <View style={styles.tilePlusHorizontal} />
-                      <View style={styles.tilePlusVertical} />
+                      {isSelected ? (
+                        <IconSymbol name="xmark" size={12} color="#fecaca" />
+                      ) : (
+                        <>
+                          <View style={styles.tilePlusHorizontal} />
+                          <View style={styles.tilePlusVertical} />
+                        </>
+                      )}
                     </Pressable>
                   </View>
                   <View style={styles.tileImageWrap}>
@@ -257,7 +275,7 @@ export default function ParlayScreen() {
                       source={{
                         uri:
                           item.image_url ||
-                          'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3',
+                          INSPECT_FALLBACK_IMAGE_URL,
                       }}
                       style={styles.tileImage}
                     />
@@ -514,18 +532,39 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
   },
-  slotClearButton: {
+  cardActionButton: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(248, 113, 113, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(248, 113, 113, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
-  slotClearButtonPressed: {
-    opacity: 0.85,
+  cardActionAdd: {
+    backgroundColor: 'rgba(74, 222, 128, 0.16)',
+    borderColor: '#4ade80',
+  },
+  cardActionRemove: {
+    backgroundColor: 'rgba(248, 113, 113, 0.18)',
+    borderColor: 'rgba(248, 113, 113, 0.6)',
+  },
+  cardActionButtonPressed: {
+    opacity: 0.8,
+  },
+  cardActionPlusHorizontal: {
+    position: 'absolute',
+    width: 10,
+    height: 2,
+    backgroundColor: '#4ade80',
+    borderRadius: 1,
+  },
+  cardActionPlusVertical: {
+    position: 'absolute',
+    width: 2,
+    height: 10,
+    backgroundColor: '#4ade80',
+    borderRadius: 1,
   },
   cardSlotImageWrap: {
     flex: 1,
@@ -597,11 +636,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: GRID_GAP,
   },
-  tileSelected: {
-    borderColor: '#4ade80',
-    borderWidth: 2,
-    backgroundColor: '#0f1f0f',
-  },
   tilePressed: {
     opacity: 0.85,
     transform: [{ scale: 0.99 }],
@@ -634,6 +668,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  tileRemoveButton: {
+    backgroundColor: 'rgba(248, 113, 113, 0.18)',
+    borderColor: 'rgba(248, 113, 113, 0.6)',
   },
   tileAddButtonPressed: {
     opacity: 0.8,

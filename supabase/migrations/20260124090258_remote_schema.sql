@@ -262,8 +262,9 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "wins" integer DEFAULT 0,
     "losses" integer DEFAULT 0,
     "draws" integer DEFAULT 0,
-    "games_played" integer DEFAULT 0,
-    "tokens" integer
+    "tokens" integer DEFAULT 0,
+    "trophies" integer DEFAULT 0,
+    "last_online" timestamp with time zone DEFAULT ("now"() AT TIME ZONE 'utc'::"text")
 );
 
 
