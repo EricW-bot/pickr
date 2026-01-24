@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthContextProvider } from './auth/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -33,20 +34,24 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="tabs" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="inspect" 
-            options={{ 
-              headerShown: false,
-              presentation: 'card',
-            }} 
-          />
-          <Stack.Screen name="battle/index" options={{ title: 'Battle' }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <AuthContextProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/Signin" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/Signup" options={{ headerShown: false }} />
+            <Stack.Screen name="tabs" options={{ headerShown: false }} />
+            <Stack.Screen 
+              name="inspect" 
+              options={{ 
+                headerShown: false,
+                presentation: 'card',
+              }} 
+            />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </AuthContextProvider>
     </GestureHandlerRootView>
   );
 }
