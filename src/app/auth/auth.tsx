@@ -80,7 +80,6 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             wins: number | null;
             losses: number | null;
             draws: number | null;
-            games_played: number | null;
             avatar_url: string | null;
             created_at: string | null;
           };

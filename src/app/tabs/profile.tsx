@@ -24,11 +24,14 @@ export default function ProfileScreen() {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    fetchStats(user?.id ?? '');
-  }, [isFocused]);
+    if (!isFocused) return;
+    if (!user?.id) return;
+    fetchStats(user.id);
+  }, [isFocused, user?.id]);
 
   async function fetchStats(userId: string) {
     try {
+      if (!userId) return;
       console.log('Fetching stats from Supabase...');
       const { data, error } = await (supabase as any)
         .from('users')
@@ -37,8 +40,7 @@ export default function ProfileScreen() {
             username,
             wins,
             losses,
-            draws,
-            games_played
+            draws
           `,
         )
         .eq('id', userId)
@@ -51,8 +53,7 @@ export default function ProfileScreen() {
           username: string | null,
           wins: number | null, 
           losses: number | null, 
-          draws: number | null, 
-          games_played: number | null 
+          draws: number | null,
         } | null;
         const nextUsername = row?.username ?? 'User';
         const nextWins = row?.wins ?? 0;

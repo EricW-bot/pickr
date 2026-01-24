@@ -15,11 +15,14 @@ export default function MarketScreen() {
   const [tokens, setTokens] = useState(user?.tokens ?? 0);
 
   useEffect(() => {
-    fetchCurrencies(user?.id ?? '');
-  }, [isFocused]);
+    if (!isFocused) return;
+    if (!user?.id) return;
+    fetchCurrencies(user.id);
+  }, [isFocused, user?.id]);
 
   async function fetchCurrencies(userId: string) {
     try {
+      if (!userId) return;
       console.log('Fetching currencies from Supabase...');
       const { data, error } = await supabase
         .from('users')

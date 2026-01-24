@@ -41,8 +41,10 @@ export default function BattleScreen() {
 
   useEffect(() => {
     // Refresh trophies everytime we switch back to this tab
-    fetchTrophies(user?.id ?? '');
-  }, [isFocused]);
+    if (!isFocused) return;
+    if (!user?.id) return;
+    fetchTrophies(user.id);
+  }, [isFocused, user?.id]);
 
   useEffect(() => {
     if (isFindingMatch) {
@@ -95,6 +97,7 @@ export default function BattleScreen() {
 
   async function fetchTrophies(userId: string) {
     try {
+      if (!userId) return;
       console.log('Fetching trophies from Supabase...');
       const { data, error } = await supabase
         .from('users')
