@@ -1,4 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,10 +71,20 @@ export default function FriendsScreen() {
 
         <View style={styles.headerActions}>
           <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
-            <IconSymbol name="paperplane.fill" size={20} color="#fff" />
+            <LinearGradient
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.iconButtonGradient}
+            >
+              <IconSymbol name="paperplane.fill" size={20} color="#fff" />
+            </LinearGradient>
           </Pressable>
           <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
-            <IconSymbol name="friends" size={20} color="#fff" />
+            <LinearGradient
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.iconButtonGradient}
+            >
+              <IconSymbol name="friends" size={20} color="#fff" />
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
@@ -91,7 +102,10 @@ export default function FriendsScreen() {
               <Text style={styles.emptySubtitle}>Share your profile to get started.</Text>
             </View>
           ) : (
-            <View style={styles.card}>
+            <LinearGradient 
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.card}
+            >
               {requests.map((r) => (
                 <View key={r.id} style={styles.row}>
                   <View style={styles.avatar}>
@@ -111,7 +125,7 @@ export default function FriendsScreen() {
                   </View>
                 </View>
               ))}
-            </View>
+            </LinearGradient>
           )}
         </View>
 
@@ -136,7 +150,10 @@ export default function FriendsScreen() {
             )}
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             {filteredFriends.length === 0 ? (
               <View style={styles.emptyInline}>
                 <Text style={styles.emptyTitle}>No matches</Text>
@@ -162,7 +179,7 @@ export default function FriendsScreen() {
                 </Pressable>
               ))
             )}
-          </View>
+          </LinearGradient>
 
           <Pressable style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
             <Text style={styles.primaryButtonText}>Invite a friend</Text>
@@ -190,7 +207,10 @@ export default function FriendsScreen() {
             )}
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             {filteredClubs.length === 0 ? (
               <View style={styles.emptyInline}>
                 <Text style={styles.emptyTitle}>No matches</Text>
@@ -211,7 +231,7 @@ export default function FriendsScreen() {
                 </Pressable>
               ))
             )}
-          </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -254,9 +274,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+  },
+  iconButtonGradient: {
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   iconButtonPressed: {
     opacity: 0.75,
@@ -312,7 +339,6 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaMedium',
   },
   card: {
-    backgroundColor: '#0f0f0f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',

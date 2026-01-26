@@ -2,6 +2,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
 import { useIsFocused } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +24,7 @@ export default function BattleScreen() {
   const [gameStage, setGameStage] = useState<string>('Idle'); // 'Idle', 'Duelling', 'Resolving', etc.
   const [trophies, setTrophies] = useState(user?.trophies ?? 0);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
+  const blinkAnim = React.useRef(new Animated.Value(1)).current;
   const isFocused = useIsFocused();
 
   // Mock live cards data (replace with real data later)
@@ -43,13 +45,26 @@ export default function BattleScreen() {
     fetchTrophies(user.id);
   }, [isFocused, user?.id]);
 
+  // Blinking Effect for "READY" status
+  useEffect(() => {
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(blinkAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    blink.start();
+    return () => blink.stop();
+  }, []);
+
+  // Pulsing Effect for Matchmaking
   useEffect(() => {
     if (isFindingMatch) {
       // Start pulsing animation
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.05,
+            toValue: 1.03,
             duration: 1000,
             useNativeDriver: true,
           }),
@@ -142,10 +157,6 @@ export default function BattleScreen() {
     );
   }
 
-  const animatedButtonStyle = {
-    transform: [{ scale: pulseAnim }],
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -154,10 +165,13 @@ export default function BattleScreen() {
             <Text style={styles.title}>Battle</Text>
             <Text style={styles.subtitle}>Challenge opponents. Win trophies.</Text>
           </View>
-          <View style={styles.trophyPill}>
+          <LinearGradient
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.trophyPill}
+          >
             <IconSymbol name="trophy" size={16} color="#ffd700" />
             <Text style={styles.trophyCount}>{trophies.toLocaleString()}</Text>
-          </View>
+          </LinearGradient>
         </View>
       </View>
 
@@ -166,28 +180,35 @@ export default function BattleScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Matchmaking</Text>
-            <Text style={styles.sectionMeta}>{isFindingMatch ? 'Searching...' : 'Ready'}</Text>
+            <Animated.View style={{ opacity: blinkAnim, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.liveIndicator} />
+              <Text style={styles.sectionMeta}>{isFindingMatch ? 'SEARCHING' : 'READY'}</Text>
+            </Animated.View>
           </View>
 
-          <View style={styles.card}>
-            <Animated.View style={animatedButtonStyle}>
+          <LinearGradient
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.glassCard}
+          >
+            <Animated.View style={{ transform: [{ scale: pulseAnim }], width: '100%' }}>
               <Pressable
                 style={({ pressed }) => [
-                  styles.battleButton,
-                  isFindingMatch && styles.battleButtonFinding,
-                  pressed && styles.battleButtonPressed,
+                  styles.obsidianButton,
+                  isFindingMatch ? styles.glowActive : styles.glowIdle,
+                  pressed && { transform: [{ scale: 0.97 }] }
                 ]}
                 onPress={handleBattlePress}
               >
-                <Text style={styles.battleButtonText}>
+                <Text style={[styles.battleButtonText, isFindingMatch && { color: '#4ade80' }]}>
                   {isFindingMatch ? 'FINDING MATCH' : 'BATTLE'}
                 </Text>
+                <View style={styles.topEdgeHighlight} />
               </Pressable>
             </Animated.View>
             {isFindingMatch && (
-              <Text style={styles.battleSubtext}>Click to cancel search</Text>
+              <Text style={styles.battleSubtext}>TAP TO CANCEL SEARCH</Text>
             )}
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Game State Section */}
@@ -197,15 +218,20 @@ export default function BattleScreen() {
             <Text style={styles.sectionMeta}>Current</Text>
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.row}>
               <View style={styles.rowMain}>
                 <Text style={styles.rowLabel}>Stage</Text>
                 <Text style={styles.rowSubtle}>Current battle phase</Text>
               </View>
-              <Text style={styles.rowValue}>{gameStage}</Text>
+              <Text style={[styles.rowValue, gameStage !== 'Idle' && styles.rowValueActive]}>
+                {gameStage}
+              </Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Live Cards Ticker */}
@@ -221,12 +247,16 @@ export default function BattleScreen() {
             contentContainerStyle={styles.tickerContent}
           >
             {liveCards.map((card) => (
-              <View key={card.id} style={styles.tickerCard}>
+              <LinearGradient 
+                colors={['#1a1a1a', '#0f0f0f']}
+                style={styles.tickerCard}
+                key={card.id}
+              >
                 <Text style={styles.tickerTitle} numberOfLines={1}>
                   {card.title}
                 </Text>
                 <Text style={styles.tickerStatus}>{card.status}</Text>
-              </View>
+              </LinearGradient>
             ))}
           </ScrollView>
         </View>
@@ -272,7 +302,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 3,
     borderRadius: 20,
-    backgroundColor: '#0f0f0f',
     borderWidth: 1,
     borderColor: '#2a2a2a',
     marginTop: 4,
@@ -305,41 +334,73 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     fontFamily: 'HelveticaMedium',
+    fontWeight: '600',
+  },
+  liveIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#4ade80',
+    marginRight: 6,
   },
   card: {
-    backgroundColor: '#0f0f0f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',
     padding: 16,
   },
-  battleButton: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    paddingVertical: 16,
+  // "Glass Edge" Card Styling
+  glassCard: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: 'rgba(255, 255, 255, 0.1)', // Light hits the top
+    alignItems: 'center',
+  },
+  obsidianButton: {
+    width: '100%',
+    paddingVertical: 20,
+    borderRadius: 18,
+    backgroundColor: '#121212',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: 1.5,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  battleButtonFinding: {
-    backgroundColor: '#1a3a2a',
-    borderColor: '#2b6b4d',
+  glowIdle: {
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
-  battleButtonPressed: {
-    opacity: 0.85,
+  glowActive: {
+    borderColor: 'rgba(74, 222, 128, 0.4)',
+    shadowColor: "#4ade80",
+    shadowRadius: 15,
+    shadowOpacity: 0.3,
+    elevation: 10,
   },
   battleButtonText: {
+    fontSize: 18,
+    fontWeight: '900',
     color: '#fff',
-    fontSize: 20,
+    letterSpacing: 3,
     fontFamily: 'HelveticaBold',
-    letterSpacing: 1,
+  },
+  topEdgeHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: '10%',
+    right: '10%',
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   battleSubtext: {
-    marginTop: 10,
-    color: '#888',
-    fontSize: 12,
-    fontFamily: 'HelveticaRegular',
+    marginTop: 12,
+    color: '#444',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
     textAlign: 'center',
   },
   row: {
@@ -370,12 +431,14 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaBold',
     fontSize: 14,
   },
+  rowValueActive: {
+    color: '#4ade80',
+  },
   tickerContent: {
     paddingRight: 24,
     gap: 12,
   },
   tickerCard: {
-    backgroundColor: '#0f0f0f',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#2a2a2a',

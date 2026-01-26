@@ -1,10 +1,11 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { supabase } from '@/src/lib/supabase';
+import { useIsFocused } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/auth';
-import React, { useEffect, useState } from 'react';
-import { useIsFocused } from '@react-navigation/native';
 
 export default function MarketScreen() {
   const { user } = useAuth();
@@ -66,7 +67,10 @@ export default function MarketScreen() {
           <Text style={styles.subtitle}>Draft cards, reroll picks, and catch specials.</Text>
 
           {/* Currency bar */}
-          <View style={styles.currencyBar}>
+          <LinearGradient
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.currencyBar}
+          >
             <View style={styles.currencyItem}>
               <Text style={styles.currencyLabel}>Gold</Text>
               <Text style={styles.currencyValue}>{gold.toLocaleString()}</Text>
@@ -81,7 +85,7 @@ export default function MarketScreen() {
               <Text style={styles.currencyLabel}>Tokens</Text>
               <Text style={styles.currencyValue}>{tokens.toLocaleString()}</Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
       </View>
 
@@ -93,7 +97,10 @@ export default function MarketScreen() {
             <Text style={styles.sectionMeta}>Build your deck</Text>
           </View>
           
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Free Tier</Text>
               <Text style={styles.packPriceFree}>FREE</Text>
@@ -103,9 +110,12 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>One free pack every day.</Text>
               <Text style={styles.packCta}>CLAIM</Text>
             </View>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Standard Tier</Text>
               <Text style={styles.packPrice}>100 Gold</Text>
@@ -115,9 +125,12 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Better odds for rare events.</Text>
               <Text style={styles.packCta}>BUY</Text>
             </View>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Premium Tier</Text>
               <Text style={styles.packPrice}>200 Gold</Text>
@@ -127,7 +140,7 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Max cards, max volatility.</Text>
               <Text style={styles.packCta}>BUY</Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Reroll Section */}
@@ -137,7 +150,10 @@ export default function MarketScreen() {
             <Text style={styles.sectionMeta}>Fine-tune your picks</Text>
           </View>
           
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Reroll Single Card</Text>
               <Text style={styles.packPrice}>500 Dust</Text>
@@ -147,7 +163,7 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Use on low-impact events.</Text>
               <Text style={styles.packCta}>REROLL</Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Buy Gold Section */}
@@ -158,7 +174,10 @@ export default function MarketScreen() {
           </View>
 
           {/* Small Gold Bundle */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Small Purse</Text>
               <Text style={styles.packPriceTokens}>40 Tokens</Text>
@@ -168,10 +187,13 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Light top-up between battles.</Text>
               <Text style={styles.packCta}>BUY 400</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           {/* Medium Gold Bundle */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Bankroll</Text>
               <Text style={styles.packPriceTokens}>80 Tokens</Text>
@@ -181,10 +203,13 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Ideal for active sessions.</Text>
               <Text style={styles.packCta}>BUY 900</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           {/* Large Gold Bundle */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>War Chest</Text>
               <Text style={styles.packPriceTokens}>150 Tokens</Text>
@@ -194,7 +219,7 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>For players living in the Market.</Text>
               <Text style={styles.packCta}>BUY 2,000</Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Buy Tokens Section */}
@@ -205,7 +230,10 @@ export default function MarketScreen() {
           </View>
 
           {/* Starter Stack */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Starter Stack</Text>
               <Text style={styles.packPrice}>$0.99</Text>
@@ -215,10 +243,13 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Best for getting a feel for tokens.</Text>
               <Text style={styles.packCta}>BUY 100</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           {/* Value Stack */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Value Stack</Text>
               <Text style={styles.packPrice}>$4.99</Text>
@@ -228,10 +259,13 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>Most popular option for regular players.</Text>
               <Text style={styles.packCta}>BUY 550</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           {/* Whale Stack */}
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.packHeader}>
               <Text style={styles.packName}>Whale Stack</Text>
               <Text style={styles.packPrice}>$9.99</Text>
@@ -241,7 +275,8 @@ export default function MarketScreen() {
               <Text style={styles.packHint}>For collectors and cosmetics enjoyers.</Text>
               <Text style={styles.packCta}>BUY 1,200</Text>
             </View>
-          </View>
+          </LinearGradient>
+
         </View>
 
         {/* Featured Items */}
@@ -251,7 +286,10 @@ export default function MarketScreen() {
             <Text style={styles.sectionMeta}>This week</Text>
           </View>
           
-          <View style={styles.featuredCard}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.featuredCard}
+          >
             <View style={styles.featuredTopRow}>
               <Text style={styles.featuredTitle}>Weekly Special</Text>
               <View style={styles.featuredBadge}>
@@ -264,7 +302,7 @@ export default function MarketScreen() {
               <Text style={styles.featuredFooterText}>Ends in 2d 4h</Text>
               <IconSymbol name="chevron.right" size={18} color="#ffd700" />
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Coming Soon Section */}
@@ -274,7 +312,10 @@ export default function MarketScreen() {
             <Text style={styles.sectionMeta}>Sneak peek</Text>
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.row}>
               <View style={styles.rowMain}>
                 <Text style={styles.rowLabel}>Card Trading</Text>
@@ -289,7 +330,7 @@ export default function MarketScreen() {
               </View>
               <Text style={styles.rowTag}>Planned</Text>
             </View>
-          </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -318,7 +359,6 @@ const styles = StyleSheet.create({
   },
   currencyBar: {
     marginTop: 14,
-    backgroundColor: '#0f0f0f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',
@@ -378,7 +418,6 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaMedium',
   },
   card: {
-    backgroundColor: '#0f0f0f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',

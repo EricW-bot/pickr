@@ -5,9 +5,10 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Text, View, StyleSheet, Dimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { capitalCase } from 'change-case';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -37,13 +38,25 @@ export default function TabLayout() {
             // Centering the icon vertically when there's no label
           marginTop: 0,
         },
+        tabBarBackground: () => (
+          <LinearGradient
+            // Adjust these colors to match your "Obsidian" or Dark mode theme
+            colors={colorScheme === 'dark' ? ['#1a1a1a', '#050505'] : ['#ffffff', '#f0f0f0']}
+            style={{ 
+                ...StyleSheet.absoluteFillObject, 
+                borderRadius: 50, 
+                borderWidth: 1, 
+                borderColor: 'rgba(255,255,255,0.05)' 
+            }}
+          />
+        ),
         tabBarStyle: {
           position: 'absolute',
           bottom: insets.bottom + 5,
           width: tabBarWidth,
           marginLeft: (screenWidth - tabBarWidth) / 2,
           borderRadius: 50,
-          backgroundColor: themeColors.background,
+          backgroundColor: 'transparent',
           height: 64,
           paddingTop: 10,
           borderTopWidth: 0,

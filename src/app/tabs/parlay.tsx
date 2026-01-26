@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Helper type for our specific query result
 type Card = Database['public']['Tables']['cards']['Row'];
@@ -182,7 +183,12 @@ export default function ParlayScreen() {
             onPress={() => setShowInfoModal(true)}
             style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
           >
-            <IconSymbol name="info.circle" size={20} color="#fff" />
+            <LinearGradient
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.iconButtonGradient}
+            >
+              <IconSymbol name="info.circle" size={20} color="#fff" />
+            </LinearGradient>
           </Pressable>
         </View>
 
@@ -372,14 +378,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
     marginTop: 4,
   },
+  iconButtonGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
   iconButtonPressed: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    opacity: 0.75,
   },
   searchRow: {
     marginTop: 14,

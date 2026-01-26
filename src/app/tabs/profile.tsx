@@ -1,11 +1,12 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useRouter } from 'expo-router';
 import { supabase } from '@/src/lib/supabase';
-import React, { useMemo, useState, useEffect } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/auth';
-import { useIsFocused } from '@react-navigation/native';
 
 export default function ProfileScreen() {
   const { signOut, user } = useAuth();
@@ -124,10 +125,20 @@ export default function ProfileScreen() {
 
         <View style={styles.headerActions}>
           <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
-            <IconSymbol name="info.circle" size={20} color="#fff" />
+            <LinearGradient
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.iconButtonGradient}
+            >
+              <IconSymbol name="info.circle" size={20} color="#fff" />
+            </LinearGradient>
           </Pressable>
           <Pressable style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}>
-            <IconSymbol name="chevron.left.forwardslash.chevron.right" size={20} color="#fff" />
+            <LinearGradient
+              colors={['#1a1a1a', '#0f0f0f']}
+              style={styles.iconButtonGradient}
+            >
+              <IconSymbol name="chevron.left.forwardslash.chevron.right" size={20} color="#fff" />
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
@@ -135,7 +146,10 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Info */}
         <View style={styles.section}>
-          <View style={styles.profileCard}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.profileCard}
+          >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{avatarInitials}</Text>
             </View>
@@ -152,7 +166,7 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Stats Section */}
@@ -162,7 +176,10 @@ export default function ProfileScreen() {
             <Text style={styles.sectionMeta}>Lifetime</Text>
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <View style={styles.row}>
               <View style={styles.rowMain}>
                 <Text style={styles.rowLabel}>Wins</Text>
@@ -198,7 +215,7 @@ export default function ProfileScreen() {
                 </View>
               </View>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Settings Section */}
@@ -208,7 +225,10 @@ export default function ProfileScreen() {
             <Text style={styles.sectionMeta}>Tap to toggle</Text>
           </View>
 
-          <View style={styles.card}>
+          <LinearGradient 
+            colors={['#1a1a1a', '#0f0f0f']}
+            style={styles.card}
+          >
             <Pressable
               style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               onPress={() => setNotificationsEnabled(!notificationsEnabled)}
@@ -249,7 +269,7 @@ export default function ProfileScreen() {
               </View>
               <IconSymbol name="chevron.right" size={18} color="#888" />
             </Pressable>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* Sign Out Section */}
@@ -359,9 +379,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+  },
+  iconButtonGradient: {
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   iconButtonPressed: {
     opacity: 0.75,
@@ -447,7 +474,6 @@ const styles = StyleSheet.create({
     fontFamily: 'HelveticaRegular',
   },
   card: {
-    backgroundColor: '#0f0f0f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',
