@@ -38,29 +38,27 @@ export default function FriendsScreen() {
     { id: 'r2', name: 'John Doe', mutuals: 1 },
   ];
 
-  const friends: Friend[] = [
-    { id: 'f1', name: 'The Rock', statusText: 'Online', mutuals: 2 },
-    { id: 'f2', name: 'Rick Astley', statusText: 'Last seen 2h ago', mutuals: 0 },
-    { id: 'f3', name: 'LeBron James', statusText: 'Online', mutuals: 5 },
-  ];
-
-  const clubs: Club[] = [
-    { id: 'c1', name: 'UNSW', members: 24, blurb: 'Campus picks + weekly ladders.' },
-    { id: 'c2', name: 'Running Club', members: 8, blurb: 'Card drafts after long runs.' },
-    { id: 'c3', name: 'The Boys', members: 32, blurb: 'No mercy, only parlays.' },
-  ];
-
   const filteredFriends = useMemo(() => {
+    const friends: Friend[] = [
+      { id: 'f1', name: 'The Rock', statusText: 'Online', mutuals: 2 },
+      { id: 'f2', name: 'Rick Astley', statusText: 'Last seen 2h ago', mutuals: 0 },
+      { id: 'f3', name: 'LeBron James', statusText: 'Online', mutuals: 5 },
+    ];
     const q = friendsQuery.trim().toLowerCase();
     if (!q) return friends;
     return friends.filter((f) => f.name.toLowerCase().includes(q));
-  }, [friends, friendsQuery]);
+  }, [friendsQuery]);
 
   const filteredClubs = useMemo(() => {
+    const clubs: Club[] = [
+      { id: 'c1', name: 'UNSW', members: 24, blurb: 'Campus picks + weekly ladders.' },
+      { id: 'c2', name: 'Running Club', members: 8, blurb: 'Card drafts after long runs.' },
+      { id: 'c3', name: 'The Boys', members: 32, blurb: 'No mercy, only parlays.' },
+    ];
     const q = clubsQuery.trim().toLowerCase();
     if (!q) return clubs;
     return clubs.filter((c) => c.name.toLowerCase().includes(q));
-  }, [clubs, clubsQuery]);
+  }, [clubsQuery]);
 
   return (
     <SafeAreaView style={styles.container}>

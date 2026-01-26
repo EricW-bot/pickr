@@ -2,7 +2,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
 import { useIsFocused } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,13 +18,11 @@ type LiveCard = {
 
 export default function BattleScreen() {
   const { user } = useAuth();
-  const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFindingMatch, setIsFindingMatch] = useState(false);
   const [gameStage, setGameStage] = useState<string>('Idle'); // 'Idle', 'Duelling', 'Resolving', etc.
   const [trophies, setTrophies] = useState(user?.trophies ?? 0);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
-  const router = useRouter();
   const isFocused = useIsFocused();
 
   // Mock live cards data (replace with real data later)
@@ -86,7 +83,7 @@ export default function BattleScreen() {
         console.error('Error details:', JSON.stringify(error, null, 2));
       } else {
         console.log(`Successfully fetched ${data?.length || 0} cards`);
-        setCards(data || []);
+        // Cards fetched but not currently used in UI
       }
     } catch (err) {
       console.error('Unexpected error:', err);

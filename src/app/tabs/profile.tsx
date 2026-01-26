@@ -82,7 +82,7 @@ export default function ProfileScreen() {
   const winRatePct = useMemo(() => {
     if (!gamesPlayed) return 0;
     return Math.round((wins / gamesPlayed) * 100);
-  }, [gamesPlayed, wins, losses, draws, isFocused]);
+  }, [gamesPlayed, wins]);
 
   // Get initials for avatar
   const avatarInitials = useMemo(() => {
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
     if (parts.length === 1) return username[0].toUpperCase();
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return username.substring(0, 2).toUpperCase();
-  }, [username, isFocused]);
+  }, [username]);
 
   const handleSignOutPress = () => {
     setShowSignOutModal(true);
@@ -99,7 +99,7 @@ export default function ProfileScreen() {
 
   const handleConfirmSignOut = async () => {
     setIsSigningOut(true);
-    const { success, error } = await signOut();
+    const { success } = await signOut();
     setIsSigningOut(false);
     
     if (success) {
