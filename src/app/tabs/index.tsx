@@ -4,7 +4,7 @@ import { Database } from '@/src/types/supabase';
 import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/auth';
 
@@ -23,6 +23,7 @@ export default function BattleScreen() {
   const [isFindingMatch, setIsFindingMatch] = useState(false);
   const [gameStage, setGameStage] = useState<string>('Idle'); // 'Idle', 'Duelling', 'Resolving', etc.
   const [trophies, setTrophies] = useState(user?.trophies ?? 0);
+  const [currentBattleId, setCurrentBattleId] = useState<string | null>(null);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
   const blinkAnim = React.useRef(new Animated.Value(1)).current;
   const isFocused = useIsFocused();
@@ -82,6 +83,49 @@ export default function BattleScreen() {
     }
   }, [isFindingMatch]);
 
+  // Realtime subscription for battle updates
+  useEffect(() => {
+    if (!currentBattleId) return;
+
+    console.log('Setting up realtime subscription for battle:', currentBattleId);
+    const channel = supabase
+      .channel(`battle:${currentBattleId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'battles',
+          filter: `id=eq.${currentBattleId}`,
+        },
+        (payload) => {
+          console.log('Battle update received:', payload);
+          const battle = payload.new as any;
+          
+          // If player_2_id was just set, we found a match!
+          if (battle.player_2_id && battle.status === 'active') {
+            setIsFindingMatch(false);
+            setGameStage('Match Found! Starting battle...');
+            // Battle is now active
+          }
+          
+          // Update game stage based on battle status
+          if (battle.status === 'active') {
+            setGameStage('Duelling');
+          } else if (battle.status === 'finished') {
+            setGameStage('Battle Finished');
+            setIsFindingMatch(false);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up battle subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [currentBattleId]);
+
   async function fetchCards() {
     try {
       setLoading(true);
@@ -133,19 +177,179 @@ export default function BattleScreen() {
     }
   }
 
-  const handleBattlePress = () => {
-    if (isFindingMatch) {
+  async function handleCancelBattle() {
+    if (!currentBattleId || !user?.id) {
       setIsFindingMatch(false);
       setGameStage('Idle');
-    } else {
-      setIsFindingMatch(true);
-      setGameStage('Finding Match');
-      // Simulate finding match - in real app, this connects to matchmaking
-      setTimeout(() => {
-        setGameStage('Duelling');
-        // After some time, stop finding and enter battle
+      setCurrentBattleId(null);
+      return;
+    }
+
+    try {
+      // Check the battle status to see if it only has one player
+      const { data: battle, error: fetchError } = await (supabase as any)
+        .from('battles')
+        .select('id, player_1_id, player_2_id, status')
+        .eq('id', currentBattleId)
+        .maybeSingle();
+
+      if (fetchError) {
+        // PGRST116 means "no rows returned" - battle doesn't exist, which is fine
+        if (fetchError.code === 'PGRST116') {
+          console.log('Battle not found (may have been deleted already)');
+        } else {
+          console.error('Error fetching battle for cancellation:', fetchError);
+        }
+        // Still clear state even if fetch fails
         setIsFindingMatch(false);
-      }, 5000);
+        setGameStage('Idle');
+        setCurrentBattleId(null);
+        return;
+      }
+
+      // If battle exists and only has one player (player_2_id is null), delete it
+      // Also verify that the current user is player_1 (they created the battle)
+      if (battle && 
+          battle.status === 'pending' && 
+          !battle.player_2_id &&
+          battle.player_1_id === user.id) {
+        console.log('Deleting battle with only one player:', currentBattleId, {
+          player_1_id: battle.player_1_id,
+          player_2_id: battle.player_2_id,
+          status: battle.status,
+          current_user_id: user.id,
+        });
+        
+        const { error: deleteError } = await (supabase as any)
+          .from('battles')
+          .delete()
+          .eq('id', currentBattleId)
+          .eq('player_1_id', user.id); // Extra safety: only delete if user is player_1
+
+        if (deleteError) {
+          console.error('Error deleting battle:', deleteError);
+          console.error('Delete error details:', JSON.stringify(deleteError, null, 2));
+        } else {
+          console.log('Battle deleted successfully');
+        }
+      } else {
+        console.log('Battle not deleted:', {
+          exists: !!battle,
+          status: battle?.status,
+          hasPlayer2: !!battle?.player_2_id,
+          isPlayer1: battle?.player_1_id === user.id,
+          reason: !battle ? 'battle not found' : 
+                  battle.status !== 'pending' ? 'battle not pending' :
+                  battle.player_2_id ? 'battle has two players' :
+                  battle.player_1_id !== user.id ? 'user is not player_1' : 'unknown'
+        });
+      }
+    } catch (error: any) {
+      console.error('Unexpected error canceling battle:', error);
+    } finally {
+      setIsFindingMatch(false);
+      setGameStage('Idle');
+      setCurrentBattleId(null);
+    }
+  }
+
+  const handleBattlePress = async () => {
+    if (isFindingMatch) {
+      // Cancel matchmaking
+      await handleCancelBattle();
+      return;
+    }
+
+    if (!user?.id) {
+      console.error('User not logged in');
+      return;
+    }
+
+    try {
+      setIsFindingMatch(true);
+      setGameStage('Finding Match...');
+
+      // Step 1: Check if user has a saved deck
+      const { data: userDeck, error: deckError } = await (supabase as any)
+        .from('decks')
+        .select('id, card_1_id, card_2_id, card_3_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // PostgREST error code PGRST116 means no deck found, which is fine
+      if (deckError && deckError.code !== 'PGRST116') {
+        throw new Error(`Failed to fetch deck: ${deckError.message}`);
+      }
+
+      if (!userDeck || (!userDeck.card_1_id && !userDeck.card_2_id && !userDeck.card_3_id)) {
+        setGameStage('Idle');
+        setIsFindingMatch(false);
+        Alert.alert('No Deck', 'Please save a deck in the Parlay tab before finding a match.');
+        return;
+      }
+
+      // Step 2: Look for an open battle (where player_2_id is null and player_1_id != current user)
+      const { data: openBattle, error: searchError } = await (supabase as any)
+        .from('battles')
+        .select('id, player_1_id, deck_1_id')
+        .eq('status', 'pending')
+        .is('player_2_id', null)
+        .neq('player_1_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        throw new Error(`Failed to search for battles: ${searchError.message}`);
+      }
+
+      if (openBattle) {
+        // Join existing battle
+        console.log('Joining existing battle:', openBattle.id);
+        const { error: joinError } = await (supabase as any)
+          .from('battles')
+          .update({
+            player_2_id: user.id,
+            deck_2_id: userDeck.id,
+            status: 'active',
+          })
+          .eq('id', openBattle.id);
+
+        if (joinError) {
+          throw new Error(`Failed to join battle: ${joinError.message}`);
+        }
+
+        setCurrentBattleId(openBattle.id);
+        setGameStage('Match Found! Starting battle...');
+        setIsFindingMatch(false);
+        // Battle is now active
+      } else {
+        // Create new battle lobby
+        console.log('Creating new battle lobby');
+        const { data: newBattle, error: createError } = await (supabase as any)
+          .from('battles')
+          .insert({
+            player_1_id: user.id,
+            deck_1_id: userDeck.id,
+            status: 'pending',
+            p1_health: 1000,
+            p2_health: 1000,
+          })
+          .select('id')
+          .single();
+
+        if (createError) {
+          throw new Error(`Failed to create battle: ${createError.message}`);
+        }
+
+        setCurrentBattleId(newBattle.id);
+        setGameStage('Waiting for opponent...');
+        // Keep isFindingMatch true - we're waiting for someone to join
+      }
+    } catch (error: any) {
+      console.error('Matchmaking error:', error);
+      setGameStage('Idle');
+      setIsFindingMatch(false);
+      Alert.alert('Error', error?.message || 'Failed to find match. Please try again.');
     }
   };
 
@@ -202,7 +406,6 @@ export default function BattleScreen() {
                 <Text style={[styles.battleButtonText, isFindingMatch && { color: '#4ade80' }]}>
                   {isFindingMatch ? 'FINDING MATCH' : 'BATTLE'}
                 </Text>
-                <View style={styles.topEdgeHighlight} />
               </Pressable>
             </Animated.View>
             {isFindingMatch && (
@@ -386,14 +589,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 3,
     fontFamily: 'HelveticaBold',
-  },
-  topEdgeHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: '10%',
-    right: '10%',
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   battleSubtext: {
     marginTop: 12,

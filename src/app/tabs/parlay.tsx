@@ -1,11 +1,14 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { fetchUserDeck, saveDeckToSupabase } from '@/src/features/game-state/deck';
 import { supabase } from '@/src/lib/supabase';
 import { Database } from '@/src/types/supabase';
+import { useIsFocused } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '../auth/auth';
 
 // Helper type for our specific query result
 type Card = Database['public']['Tables']['cards']['Row'];
@@ -21,12 +24,17 @@ const INSPECT_FALLBACK_IMAGE_URL =
   'https://tse1.mm.bing.net/th/id/OIP.oHYyOUomj30SYJGtOprncAHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3';
 
 export default function ParlayScreen() {
+  const { user } = useAuth();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savedCardIds, setSavedCardIds] = useState<string[]>([]);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedCards, setSelectedCards] = useState<(Card | null)[]>([null, null, null]);
   const router = useRouter();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     fetchCards();
@@ -56,6 +64,67 @@ export default function ParlayScreen() {
       setLoading(false);
     }
   }
+
+  async function loadSavedDeck() {
+    if (!user?.id) return;
+
+    try {
+      console.log('Loading saved deck for user:', user.id);
+      const result = await fetchUserDeck(user.id);
+
+      if (result.success && result.data) {
+        const deck = result.data;
+        const cardIds = [deck.card_1_id, deck.card_2_id, deck.card_3_id].filter(
+          (id): id is string => id !== null
+        );
+
+        if (cardIds.length > 0) {
+          // Map card IDs to actual Card objects
+          const loadedCards: (Card | null)[] = [null, null, null];
+          cardIds.forEach((cardId, index) => {
+            const card = cards.find((c) => c.id === cardId);
+            if (card) {
+              loadedCards[index] = card;
+            } else {
+              console.warn(`Card with ID ${cardId} not found in available cards`);
+            }
+          });
+
+          setSelectedCards(loadedCards);
+          console.log(`Loaded ${cardIds.length} cards from saved deck`);
+        } else {
+          console.log('Saved deck has no cards');
+        }
+      } else if (result.error) {
+        console.error('Error loading saved deck:', result.error);
+      } else {
+        console.log('No saved deck found');
+      }
+    } catch (error: any) {
+      console.error('Unexpected error loading saved deck:', error);
+    }
+  }
+
+  // Load saved deck when cards are loaded and user is available
+  useEffect(() => {
+    if (!isFocused || !user?.id || cards.length === 0) return;
+    loadSavedDeck();
+  }, [isFocused, user?.id, cards.length]);
+
+  // Reset saved state when deck changes
+  useEffect(() => {
+    const currentCardIds = selectedCards.filter((c) => c !== null).map((c) => c!.id).sort();
+    const savedIdsSorted = [...savedCardIds].sort();
+    
+    // Compare current selection with saved selection
+    const hasChanged = 
+      currentCardIds.length !== savedIdsSorted.length ||
+      currentCardIds.some((id, index) => id !== savedIdsSorted[index]);
+    
+    if (hasChanged) {
+      setIsSaved(false);
+    }
+  }, [selectedCards, savedCardIds]);
 
   if (loading) {
     return (
@@ -104,6 +173,42 @@ export default function ParlayScreen() {
   const handleReset = () => {
     setSelectedCards([null, null, null]);
   };
+
+  async function handleSaveDeck() {
+    if (!user?.id) {
+      return;
+    }
+
+    const cardIds = selectedCards.filter((c) => c !== null).map((c) => c!.id);
+    if (cardIds.length === 0) {
+      return;
+    }
+
+    await performSave(cardIds);
+  }
+
+  async function performSave(cardIds: string[]) {
+    if (!user?.id) return;
+
+    try {
+      setSaving(true);
+      const result = await saveDeckToSupabase(user.id, cardIds);
+
+      if (result.success) {
+        setIsSaved(true);
+        setSavedCardIds(cardIds);
+        console.log('Deck saved successfully');
+      } else {
+        console.error('Failed to save deck:', result.error);
+        setIsSaved(false);
+      }
+    } catch (error: any) {
+      console.error('Unexpected error saving deck:', error);
+      setIsSaved(false);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const inspectCard = (card: Card) => {
     router.push({
@@ -217,14 +322,31 @@ export default function ParlayScreen() {
               <Text style={styles.sectionTitle}>Selected Cards</Text>
               <Text style={styles.sectionMeta}>{selectedCount}/3 cards selected</Text>
             </View>
-            {selectedCount > 0 && (
-              <Pressable
-                onPress={handleReset}
-                style={({ pressed }) => [styles.resetButton, pressed && styles.resetButtonPressed]}
-              >
-                <IconSymbol name="reset" size={18} color="#fff" />
-              </Pressable>
-            )}
+            <View style={styles.sectionHeaderActions}>
+              {selectedCount > 0 && (
+                <Pressable
+                  onPress={handleReset}
+                  style={({ pressed }) => [styles.resetButton, pressed && styles.resetButtonPressed]}
+                >
+                  <IconSymbol name="reset" size={18} color="#fff" />
+                </Pressable>
+              )}
+              {selectedCount > 0 && (
+                <Pressable
+                  onPress={handleSaveDeck}
+                  disabled={saving}
+                  style={({ pressed }) => [
+                    styles.saveButton,
+                    pressed && styles.saveButtonPressed,
+                    saving && styles.saveButtonDisabled,
+                  ]}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {saving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
 
           <View style={styles.slotsContainer}>
@@ -497,6 +619,11 @@ const styles = StyleSheet.create({
     color: '#888',
     fontFamily: 'HelveticaMedium',
   },
+  sectionHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   resetButton: {
     width: 36,
     height: 36,
@@ -508,6 +635,26 @@ const styles = StyleSheet.create({
   resetButtonPressed: {
     opacity: 0.7,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  saveButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.4)',
+  },
+  saveButtonPressed: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(74, 222, 128, 0.3)',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
+  },
+  saveButtonText: {
+    color: '#4ade80',
+    fontSize: 14,
+    fontWeight: '600',
   },
   slotsContainer: {
     flexDirection: 'row',
